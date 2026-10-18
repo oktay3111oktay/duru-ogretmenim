@@ -5829,4 +5829,4 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
 </script>
 <!-- V6.48.2: legacy Din/Fen session repair, corrected Din questions, non-negative points. -->
 
-<script>if('serviceWorker' in navigator&&location.protocol==='https:'){window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(()=>{}));}</script>
+<script>if('serviceWorker' in navigator&&location.protocol==='https:'){window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{}));}</script>
