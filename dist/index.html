@@ -1,4 +1,4 @@
-<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>5. Sınıf Öğretmenim — V6.47</title><meta name="theme-color" content="#6d5bd0"><link rel="manifest" href="./manifest.webmanifest"><style>
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>5. Sınıf Öğretmenim — V6.48</title><meta name="theme-color" content="#6d5bd0"><link rel="manifest" href="./manifest.webmanifest"><style>
 :root{font-family:system-ui,-apple-system,sans-serif;color:#26334b;background:#f4f3ec}*{box-sizing:border-box}body{margin:0}header{padding:15px max(16px,calc((100vw - 1040px)/2));background:white;display:flex;align-items:center;justify-content:space-between;gap:8px;box-shadow:0 2px 12px #0001}header strong{font-size:clamp(17px,3.5vw,23px);line-height:1.2}header .right{display:flex;gap:8px;align-items:center;white-space:nowrap}main{max-width:1040px;margin:auto;padding:18px 15px 55px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px}.card{background:#fff;padding:18px;border-radius:19px;box-shadow:0 3px 15px #0000000a;margin-bottom:14px}button,input,textarea,select{font:inherit}button{border:0;border-radius:12px;padding:11px 14px;background:#e8e7f7;color:#27334b;font-weight:700;cursor:pointer}button:disabled{opacity:.48;cursor:not-allowed}.primary{background:#6750d9;color:white}.green{background:#dcf8e7}.small{font-size:13px}.muted{color:#69768a}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}.subject{min-height:125px;text-align:left;font-size:18px}.subject span{display:block;font-size:35px;margin-bottom:13px}.progress{background:#e9eaf0;border-radius:30px;height:9px;overflow:hidden}.progress div{background:#32b78b;height:100%}.answer{display:block;width:100%;text-align:left;margin:8px 0;background:#f0effa}.answer.selected{outline:3px solid #7454de}.badge{display:inline-block;background:#ede8ff;border-radius:20px;padding:5px 10px;margin:3px;font-size:13px}.prize{font-size:55px;text-align:center;animation:pop .5s ease}.prizecard{text-align:center;border-radius:14px;background:#faf3ff;padding:12px;min-height:130px}.prizecard .big{font-size:43px}.tag{font-size:11px;color:#7559a6}.locked{opacity:.6}.section{margin-top:32px}.avatar{font-size:58px}.world{font-size:40px;line-height:1.7}.pill{background:#f2edf9;padding:7px 10px;border-radius:14px}textarea,input{border:1px solid #cbd0dc;border-radius:12px;padding:10px;width:100%;background:white;color:#25334a}input[type=checkbox]{width:auto}.warning{background:#fff2db;padding:12px;border-radius:12px}.success{background:#e0f8e7;padding:12px;border-radius:12px}a{color:#6750d9}.hide{display:none}@keyframes pop{from{transform:scale(.4);opacity:0}75%{transform:scale(1.15)}to{transform:scale(1);opacity:1}}body.dark{background:#181e2c;color:#f2f3fb}body.dark header,body.dark .card{background:#293247}body.dark button{background:#454f6c;color:#fff}body.dark .primary{background:#7759e8}body.dark .muted{color:#c3cadd}body.dark input,body.dark textarea{background:#202a3c;color:white}body.dark .prizecard{background:#39415b}body.dark .warning{background:#51412e}body.dark .success{background:#285041}@media(max-width:420px){.card{padding:14px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.subject{font-size:15px;min-height:112px}}
 .scene{position:relative;border-radius:20px;min-height:245px;overflow:hidden;padding:15px;color:#163c5a;margin:12px 0;box-shadow:inset 0 -12px 35px #0002}.scene-title{font-size:20px;font-weight:800;text-shadow:0 1px 5px #fff9}.scene-title span{float:right;font-size:13px;background:#ffffffa8;padding:5px 9px;border-radius:20px}.scene-cloud{text-align:center;font-size:24px;opacity:.9}.scene-land{text-align:center;font-size:77px;filter:drop-shadow(0 7px 4px #0003);animation:floatworld 4s ease-in-out infinite}.scene-items{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;min-height:53px}.scene-item{font-size:31px;animation:pop .45s ease}.scene-hint{background:#ffffffc9;border-radius:14px;padding:8px;font-size:13px;text-align:center}.scene-foot{text-align:center;font-weight:700;font-size:13px;background:#ffffffb8;border-radius:14px;padding:7px;margin-top:10px}.world-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.world-option{min-height:100px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px}.world-option span{font-size:32px}.world-option.chosen{outline:3px solid #31ad86}@keyframes floatworld{50%{transform:translateY(-5px)}}
 /* Avatar Studio V2.3 */
@@ -4525,6 +4525,294 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
 })();
 </script>
 
+
+<style id="duru-v648-test-style">
+#test-recovery-v648{border:2px solid #d58b22;font-weight:650}
+</style>
+<script id="duru-v648-test-session">
+/* V6.48 - canonical, versioned test-session persistence and provenance checks. */
+(function () {
+  'use strict';
+
+  const ACTIVE_KEY = 'duru_teacher_active_test_v617';
+  const RECOVERY_KEY = 'duru_teacher_test_recovery_v648';
+  const SESSION_SCHEMA = 2;
+  const VALID_KINDS = new Set(['normal', 'extra', 'general', 'repeat']);
+  const VALID_STAGES = new Set(['question', 'result', 'repair', 'finished']);
+  const COURSE_ALIASES = {
+    'Din': 'Din Kültürü',
+    'Din Kültürü ve Ahlak Bilgisi': 'Din Kültürü',
+    'Peygamberimizin Hayatı Dersi': 'Peygamberimizin Hayatı',
+    'Fen': 'Fen Bilimleri'
+  };
+  let recoveryMessage = '';
+
+  function nowIsoV648() { return new Date().toISOString(); }
+  function cloneV648(value) { return JSON.parse(JSON.stringify(value)); }
+  function courseIdV648(value) {
+    const raw = String(value || '').trim();
+    const id = COURSE_ALIASES[raw] || raw;
+    return topics[id] ? id : '';
+  }
+  function sessionIdV648() {
+    if (globalThis.crypto && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+    return 'test-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
+  }
+  function readRawV648() {
+    try { return JSON.parse(localStorage.getItem(ACTIVE_KEY) || 'null'); }
+    catch (error) { return { __parseError: true, __raw: localStorage.getItem(ACTIVE_KEY), __error: String(error) }; }
+  }
+  function archiveRecoveryV648(raw, reason) {
+    try {
+      const existing = JSON.parse(localStorage.getItem(RECOVERY_KEY) || '[]');
+      const signature = JSON.stringify(raw).slice(0, 4000);
+      if (!existing.some(item => item.signature === signature)) {
+        existing.push({ savedAt: nowIsoV648(), reason, signature, record: raw });
+        localStorage.setItem(RECOVERY_KEY, JSON.stringify(existing.slice(-3)));
+      }
+    } catch (error) { console.warn('Test kurtarma kopyası kaydedilemedi', error); }
+    recoveryMessage = reason;
+  }
+  function normalizeQuestionV648(question, fallbackCourse, fallbackTopic) {
+    if (!question || typeof question !== 'object') return null;
+    const sourceCourseId = courseIdV648(question.sourceCourseId || question.c || fallbackCourse);
+    const sourceTopicId = Number(question.sourceTopicId ?? question.t ?? fallbackTopic);
+    if (!sourceCourseId || !Number.isInteger(sourceTopicId) || !topics[sourceCourseId]?.[sourceTopicId]) return null;
+    const prompt = String(question.prompt || '').trim();
+    const answer = String(question.answer ?? '');
+    const options = Array.isArray(question.options) ? question.options.map(String) : [];
+    if (!prompt || options.length < 2 || new Set(options).size !== options.length || options.filter(x => x === answer).length !== 1) return null;
+    return { ...question, c: sourceCourseId, t: sourceTopicId, sourceCourseId, sourceTopicId, prompt, answer, options };
+  }
+  function normalizeRecordV648(raw, options = {}) {
+    if (!raw || raw.__parseError || typeof raw !== 'object' || !raw.session || typeof raw.session !== 'object') {
+      return { ok: false, reason: 'Duraklatılmış test kaydı okunamadı; güvenli kurtarma kopyası saklandı.' };
+    }
+    const legacyCourse = courseIdV648(raw.courseId || raw.course);
+    const legacyTopic = Number(raw.topicId ?? raw.topic ?? 0);
+    const sourceQuestions = Array.isArray(raw.session.qs) ? raw.session.qs : [];
+    const questions = sourceQuestions.map(q => normalizeQuestionV648(q, legacyCourse, legacyTopic));
+    if (!questions.length || questions.some(q => !q)) {
+      return { ok: false, reason: 'Duraklatılmış testte kaynağı doğrulanamayan soru bulundu; kayıt silinmeden kurtarmaya alındı.' };
+    }
+    const kind = VALID_KINDS.has(raw.session.kind) ? raw.session.kind : 'normal';
+    const sourceCourses = [...new Set(questions.map(q => q.sourceCourseId))];
+    const sourceKeys = [...new Set(questions.map(q => q.sourceCourseId + '|' + q.sourceTopicId))];
+    if (sourceCourses.length > 1 && kind !== 'general') {
+      return { ok: false, reason: 'Tek ders testi birden fazla dersin sorularını içeriyor; kayıt silinmeden kurtarmaya alındı.' };
+    }
+    const expectedCourse = sourceCourses.length === 1 ? sourceCourses[0] : 'GTT Genel';
+    const priorCourse = String(raw.courseId || raw.course || '');
+    const repairedMismatch = priorCourse && priorCourse !== expectedCourse && COURSE_ALIASES[priorCourse] !== expectedCourse;
+    const session = { ...raw.session, qs: questions, keys: sourceKeys };
+    session.idx = Math.max(0, Math.min(Number.isInteger(session.idx) ? session.idx : 0, questions.length - 1));
+    session.answers = Array.isArray(session.answers) ? session.answers.map(String).slice(0, session.idx) : [];
+    session.pending = Array.isArray(session.pending)
+      ? session.pending.map(q => normalizeQuestionV648(q, expectedCourse, legacyTopic)).filter(Boolean)
+      : [];
+    session.initial = Number.isFinite(Number(session.initial)) ? Number(session.initial) : 0;
+    session.repair = Number.isFinite(Number(session.repair)) ? Number(session.repair) : 0;
+    const topicIds = [...new Set(questions.filter(q => q.sourceCourseId === expectedCourse).map(q => q.sourceTopicId))];
+    const selected = session.qs[session.idx]?.options.includes(String(raw.selected)) ? String(raw.selected) : null;
+    const createdAt = raw.createdAt || nowIsoV648();
+    const record = {
+      schemaVersion: SESSION_SCHEMA,
+      appVersion: 648,
+      sessionId: raw.sessionId || raw.session?._sessionIdV648 || sessionIdV648(),
+      revision: Number(raw.revision) || 1,
+      courseId: expectedCourse,
+      topicId: topicIds.length === 1 ? topicIds[0] : null,
+      testKind: kind,
+      sourceKeys,
+      stage: VALID_STAGES.has(raw.stage) ? raw.stage : 'question',
+      selected,
+      createdAt,
+      updatedAt: raw.updatedAt || createdAt,
+      session
+    };
+    record.session._sessionIdV648 = record.sessionId;
+    return { ok: true, record, repairedMismatch, migrated: raw.schemaVersion !== SESSION_SCHEMA || !raw.courseId };
+  }
+  function legacyShapeV648(record) {
+    if (!record) return null;
+    return { ...record, course: record.courseId, topic: record.topicId ?? 0, selected: record.selected, session: record.session };
+  }
+  function persistRecordV648(record) {
+    localStorage.setItem(ACTIVE_KEY, JSON.stringify(record));
+    return record;
+  }
+  function readCanonicalV648() {
+    const raw = readRawV648();
+    if (!raw) return null;
+    const normalized = normalizeRecordV648(raw);
+    if (!normalized.ok) {
+      archiveRecoveryV648(raw, normalized.reason);
+      return null;
+    }
+    if (normalized.repairedMismatch) {
+      recoveryMessage = 'Kaydın ders etiketi soruların gerçek kaynağıyla uyuşmadığı için ' + normalized.record.courseId + ' olarak güvenle düzeltildi.';
+    }
+    if (normalized.migrated || normalized.repairedMismatch) persistRecordV648(normalized.record);
+    return normalized.record;
+  }
+  function labelV648(record) {
+    if (!record) return 'Test';
+    if (record.courseId === 'GTT Genel') return 'Genel GTT';
+    if (record.testKind === 'general') return record.courseId + ' GTT';
+    return record.courseId || 'Test';
+  }
+  function addHomeNoticeV648() {
+    const host = document.getElementById('app');
+    if (!host) return;
+    const record = readCanonicalV648();
+    if (record && !document.getElementById('paused-test-v617')) {
+      const box = document.createElement('div');
+      box.id = 'paused-test-v617';
+      box.className = 'paused-test-notice';
+      box.innerHTML = '<strong>⏸ ' + esc(labelV648(record)) + ' Testin Duraklatıldı</strong><div>Yanıtların ve her sorunun gerçek ders/konu kaynağı kaydedildi. Aynı sorudan güvenle devam edebilirsin.</div><button class="primary" onclick="resumeSavedTestV617()">▶ Şimdi devam et</button>';
+      host.prepend(box);
+    }
+    if (recoveryMessage && !document.getElementById('test-recovery-v648')) {
+      const warning = document.createElement('div');
+      warning.id = 'test-recovery-v648';
+      warning.className = 'warning';
+      warning.style.marginBottom = '12px';
+      warning.textContent = '⚠️ ' + recoveryMessage;
+      host.prepend(warning);
+    }
+  }
+
+  const startSessionBeforeV648 = startSession;
+  startSession = function (questions, kind, keys) {
+    const saved = readCanonicalV648();
+    if (saved) return resumeSavedTestV617();
+    const fallbackCourse = courseIdV648(course);
+    const fallbackTopic = Number(topic) || 0;
+    const normalized = (Array.isArray(questions) ? questions : []).map(q => normalizeQuestionV648(q, fallbackCourse, fallbackTopic));
+    if (!normalized.length || normalized.some(q => !q)) {
+      alert('Test başlatılamadı: Bir veya daha fazla sorunun gerçek ders/konu kimliği doğrulanamadı. İlerleme değiştirilmedi.');
+      return false;
+    }
+    const sources = [...new Set(normalized.map(q => q.sourceCourseId))];
+    const normalizedKind = VALID_KINDS.has(kind) ? kind : 'normal';
+    if (sources.length > 1 && normalizedKind !== 'general') {
+      alert('Test başlatılamadı: Tek ders testinde farklı derslere ait sorular bulundu. İlerleme değiştirilmedi.');
+      return false;
+    }
+    course = sources.length === 1 ? sources[0] : 'GTT Genel';
+    const sourceTopics = [...new Set(normalized.filter(q => q.sourceCourseId === course).map(q => q.sourceTopicId))];
+    if (sourceTopics.length === 1) topic = sourceTopics[0];
+    normalized.forEach(q => { q.c = q.sourceCourseId; q.t = q.sourceTopicId; });
+    const canonicalKeys = [...new Set(normalized.map(q => q.sourceCourseId + '|' + q.sourceTopicId))];
+    const result = startSessionBeforeV648(normalized, normalizedKind, canonicalKeys);
+    if (session) session._sessionIdV648 = session._sessionIdV648 || sessionIdV648();
+    recordTestV617('question');
+    return result;
+  };
+
+  savedTestV617 = function () { return legacyShapeV648(readCanonicalV648()); };
+  pausedTestLabelV647 = function (saved) {
+    const normalized = normalizeRecordV648(saved || readRawV648());
+    return normalized.ok ? labelV648(normalized.record) : 'Test';
+  };
+  recordTestV617 = function (stage) {
+    if (skipActiveStoreV617 || !session || !Array.isArray(session.qs) || !session.qs.length) return;
+    const previous = readCanonicalV648();
+    const sameSession = !!previous && !!session._sessionIdV648 && previous.sessionId === session._sessionIdV648;
+    const raw = {
+      schemaVersion: SESSION_SCHEMA,
+      sessionId: session._sessionIdV648 || previous?.sessionId || sessionIdV648(),
+      revision: sameSession ? previous.revision + 1 : 1,
+      courseId: course,
+      topicId: topic,
+      stage: VALID_STAGES.has(stage) ? stage : 'question',
+      selected: typeof chosenAnswer === 'undefined' ? null : chosenAnswer,
+      createdAt: previous?.createdAt || nowIsoV648(),
+      updatedAt: nowIsoV648(),
+      session
+    };
+    const normalized = normalizeRecordV648(raw);
+    if (!normalized.ok) {
+      archiveRecoveryV648(raw, normalized.reason);
+      console.warn(normalized.reason);
+      return;
+    }
+    testUiStageV617 = normalized.record.stage;
+    persistRecordV648(normalized.record);
+    try {
+      sessionStorage.setItem(ROUTE_KEY, JSON.stringify({
+        type: 'test', stage: normalized.record.stage, course: normalized.record.courseId,
+        topic: normalized.record.topicId ?? 0, session: normalized.record.session,
+        chosenAnswer: normalized.record.selected
+      }));
+    } catch (_) {}
+  };
+  resumeSavedTestV617 = function () {
+    const record = readCanonicalV648();
+    if (!record) { if (typeof home === 'function') home(); return false; }
+    course = record.courseId;
+    topic = record.topicId ?? record.session.qs[record.session.idx]?.sourceTopicId ?? 0;
+    session = cloneV648(record.session);
+    chosenAnswer = record.selected;
+    testUiStageV617 = record.stage;
+    try { sessionStorage.setItem(ROUTE_KEY, JSON.stringify({ type: 'test', stage: record.stage, course, topic, session, chosenAnswer })); } catch (_) {}
+    if (record.stage === 'result') { showSavedResultV617(); return true; }
+    if (record.stage === 'repair' || record.stage === 'finished') {
+      if (session.pending?.length) repairQuestion(); else showSavedResultV617();
+      return true;
+    }
+    question();
+    if (chosenAnswer !== null) {
+      const index = session.qs[session.idx].options.indexOf(chosenAnswer);
+      if (index >= 0) {
+        document.querySelectorAll('.answer').forEach((button, i) => button.classList.toggle('selected', i === index));
+        const next = document.getElementById('next'); if (next) next.disabled = false;
+      } else chosenAnswer = null;
+    }
+    return true;
+  };
+  exitTestV617 = function () {
+    if (!session) { home(); return; }
+    recordTestV617(testUiStageV617);
+    home();
+    addHomeNoticeV648();
+  };
+
+  const resumePendingBeforeV648 = resumePending;
+  resumePending = function () {
+    const pending = state.pendingSession;
+    if (!pending) return;
+    const normalized = normalizeRecordV648({ session: pending.session, course: pending.course, topic: pending.topic, stage: 'repair' });
+    if (!normalized.ok) {
+      state.recoveredTestSessionsV648 = Array.isArray(state.recoveredTestSessionsV648) ? state.recoveredTestSessionsV648 : [];
+      state.recoveredTestSessionsV648.push({ savedAt: nowIsoV648(), reason: normalized.reason, record: cloneV648(pending) });
+      state.recoveredTestSessionsV648 = state.recoveredTestSessionsV648.slice(-3);
+      delete state.pendingSession;
+      recoveryMessage = normalized.reason;
+      persist(); home(); return;
+    }
+    pending.course = normalized.record.courseId;
+    pending.topic = normalized.record.topicId ?? 0;
+    pending.session = normalized.record.session;
+    return resumePendingBeforeV648();
+  };
+
+  const homeBeforeV648 = home;
+  home = function () { const result = homeBeforeV648.apply(this, arguments); addHomeNoticeV648(); return result; };
+
+  const active = readCanonicalV648();
+  if (active) resumeSavedTestV617();
+  else if (view === 'home') addHomeNoticeV648();
+
+  window.__DURU_TEST_SESSION_V648__ = {
+    schemaVersion: SESSION_SCHEMA,
+    normalizeRecord: normalizeRecordV648,
+    read: readCanonicalV648,
+    label: labelV648
+  };
+})();
+
+</script>
 <script>
 /* Duru Öğretmenim V6.46 - güvenli, isteğe bağlı, çevrimdışı öncelikli senkronizasyon */
 (function () {
@@ -5336,5 +5624,7 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
 </script>
 
 <!-- V6.47: ders/GTT etiketli duraklatma uyarısı ve özgün Sevimli Hayvanlar Köyü sahnesi. Öğrenci kayıtları korunur. -->
+
+<!-- V6.48: versioned test sessions, verified course/topic provenance, safe legacy recovery. -->
 
 <script>if('serviceWorker' in navigator&&location.protocol==='https:'){window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(()=>{}));}</script>
