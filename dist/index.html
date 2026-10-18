@@ -1,4 +1,4 @@
-<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>5. Sınıf Öğretmenim — V6.46</title><meta name="theme-color" content="#6d5bd0"><link rel="manifest" href="./manifest.webmanifest"><style>
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>5. Sınıf Öğretmenim — V6.47</title><meta name="theme-color" content="#6d5bd0"><link rel="manifest" href="./manifest.webmanifest"><style>
 :root{font-family:system-ui,-apple-system,sans-serif;color:#26334b;background:#f4f3ec}*{box-sizing:border-box}body{margin:0}header{padding:15px max(16px,calc((100vw - 1040px)/2));background:white;display:flex;align-items:center;justify-content:space-between;gap:8px;box-shadow:0 2px 12px #0001}header strong{font-size:clamp(17px,3.5vw,23px);line-height:1.2}header .right{display:flex;gap:8px;align-items:center;white-space:nowrap}main{max-width:1040px;margin:auto;padding:18px 15px 55px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px}.card{background:#fff;padding:18px;border-radius:19px;box-shadow:0 3px 15px #0000000a;margin-bottom:14px}button,input,textarea,select{font:inherit}button{border:0;border-radius:12px;padding:11px 14px;background:#e8e7f7;color:#27334b;font-weight:700;cursor:pointer}button:disabled{opacity:.48;cursor:not-allowed}.primary{background:#6750d9;color:white}.green{background:#dcf8e7}.small{font-size:13px}.muted{color:#69768a}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}.subject{min-height:125px;text-align:left;font-size:18px}.subject span{display:block;font-size:35px;margin-bottom:13px}.progress{background:#e9eaf0;border-radius:30px;height:9px;overflow:hidden}.progress div{background:#32b78b;height:100%}.answer{display:block;width:100%;text-align:left;margin:8px 0;background:#f0effa}.answer.selected{outline:3px solid #7454de}.badge{display:inline-block;background:#ede8ff;border-radius:20px;padding:5px 10px;margin:3px;font-size:13px}.prize{font-size:55px;text-align:center;animation:pop .5s ease}.prizecard{text-align:center;border-radius:14px;background:#faf3ff;padding:12px;min-height:130px}.prizecard .big{font-size:43px}.tag{font-size:11px;color:#7559a6}.locked{opacity:.6}.section{margin-top:32px}.avatar{font-size:58px}.world{font-size:40px;line-height:1.7}.pill{background:#f2edf9;padding:7px 10px;border-radius:14px}textarea,input{border:1px solid #cbd0dc;border-radius:12px;padding:10px;width:100%;background:white;color:#25334a}input[type=checkbox]{width:auto}.warning{background:#fff2db;padding:12px;border-radius:12px}.success{background:#e0f8e7;padding:12px;border-radius:12px}a{color:#6750d9}.hide{display:none}@keyframes pop{from{transform:scale(.4);opacity:0}75%{transform:scale(1.15)}to{transform:scale(1);opacity:1}}body.dark{background:#181e2c;color:#f2f3fb}body.dark header,body.dark .card{background:#293247}body.dark button{background:#454f6c;color:#fff}body.dark .primary{background:#7759e8}body.dark .muted{color:#c3cadd}body.dark input,body.dark textarea{background:#202a3c;color:white}body.dark .prizecard{background:#39415b}body.dark .warning{background:#51412e}body.dark .success{background:#285041}@media(max-width:420px){.card{padding:14px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.subject{font-size:15px;min-height:112px}}
 .scene{position:relative;border-radius:20px;min-height:245px;overflow:hidden;padding:15px;color:#163c5a;margin:12px 0;box-shadow:inset 0 -12px 35px #0002}.scene-title{font-size:20px;font-weight:800;text-shadow:0 1px 5px #fff9}.scene-title span{float:right;font-size:13px;background:#ffffffa8;padding:5px 9px;border-radius:20px}.scene-cloud{text-align:center;font-size:24px;opacity:.9}.scene-land{text-align:center;font-size:77px;filter:drop-shadow(0 7px 4px #0003);animation:floatworld 4s ease-in-out infinite}.scene-items{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;min-height:53px}.scene-item{font-size:31px;animation:pop .45s ease}.scene-hint{background:#ffffffc9;border-radius:14px;padding:8px;font-size:13px;text-align:center}.scene-foot{text-align:center;font-weight:700;font-size:13px;background:#ffffffb8;border-radius:14px;padding:7px;margin-top:10px}.world-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.world-option{min-height:100px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px}.world-option span{font-size:32px}.world-option.chosen{outline:3px solid #31ad86}@keyframes floatworld{50%{transform:translateY(-5px)}}
 /* Avatar Studio V2.3 */
@@ -195,13 +195,13 @@ const WORLD_OPTIONS=[['Hayal Adası','🏝️'],['Masal Krallığı','🏰'],['S
 function worldScene(){let n=allDone(),w=state.worldChoice||'Hayal Adası';let themes={
 'Hayal Adası':{bg:'linear-gradient(180deg,#8ad9ff 0%,#c6efff 51%,#35b9df 52%,#0d8dbb 100%)',base:'🏝️',extras:['🌴','🏡','🌺','🐬','🌈','🏰','🦄','🎡']},
 'Masal Krallığı':{bg:'linear-gradient(160deg,#e7c7ff,#ffc5dd,#9c8de5)',base:'🏰',extras:['🌷','🦋','🧚','🌈','🦄','👑','✨','🐉']},
-'Sevimli Hayvanlar Köyü':{bg:'linear-gradient(160deg,#b9ebba,#f8f3c2,#8bd2a5)',base:'🏡',extras:['🐱','🐶','🐰','🐼','🐹','🦊','🦋','🦄']},
+'Sevimli Hayvanlar Köyü':{bg:'linear-gradient(180deg,#9edcff 0%,#eaf7cf 48%,#79c96b 49%,#3f9b58 100%)',base:'🌳 🏘️ 🌾',residents:['🐱','🐶','🐰'],extras:['🐾','🐼','🐹','🦊','🦋','🦄','🌻','🚲']},
 'Denizaltı Krallığı':{bg:'linear-gradient(160deg,#82e7e9,#1c9ad1,#124c9e)',base:'🪸',extras:['🐠','🐬','🐢','🪼','🧜‍♀️','🐳','🦀','🏰']},
 'Uzay Macerası':{bg:'linear-gradient(150deg,#14163b,#403381,#8755ae)',base:'🚀',extras:['⭐','🪐','🌙','👽','🛸','☄️','🌎','🌠']},
 'Hayalimdeki Ev':{bg:'linear-gradient(160deg,#ffe7d1,#ffb9c8,#c3bcff)',base:'🏡',extras:['🪴','🐈','🧸','🎨','🛏️','🐶','🎹','🎠']},
 'Şekerler Ülkesi':{bg:'linear-gradient(160deg,#ffd0e8,#f9d6ff,#ffefb3)',base:'🍭',extras:['🍬','🧁','🍦','🍩','🎂','🍫','🌈','🏰']},
 'Büyülü Orman':{bg:'linear-gradient(160deg,#b9edc1,#4eaf86,#386b79)',base:'🌳',extras:['🍄','🦋','🦉','🧚','🦊','🌸','🦄','✨']}};
-let t=themes[w]||themes['Hayal Adası'];let shown=t.extras.slice(0,Math.min(n,t.extras.length));let rewards=Object.keys(state.collection||{}).length;return `<div class="scene" style="background:${t.bg}"><div class="scene-title">${w} <span>✨ ${n} konu</span></div><div class="scene-cloud">☁️ ${n>=3?'🌈':''} ☁️</div><div class="scene-land">${t.base}</div><div class="scene-items">${shown.map(x=>`<span class="scene-item">${x}</span>`).join('')||'<span class="scene-hint">İlk konunu tamamla, dünyan büyüsün! 🌟</span>'}</div><div class="scene-foot">🎁 ${rewards}/100 sürpriz &nbsp; 🏅 ${state.badges.length} rozet</div></div>`}
+let t=themes[w]||themes['Hayal Adası'];let shown=t.extras.slice(0,Math.min(n,t.extras.length));let rewards=Object.keys(state.collection||{}).length;let residents=(t.residents||[]).map(x=>`<span style="opacity:1;filter:none;transform:none">${x}</span>`).join('');return `<div class="scene" style="background:${t.bg}"><div class="scene-title">${w} <span>✨ ${n} konu</span></div><div class="scene-cloud">☁️ ${n>=3?'🌈':''} ☁️</div><div class="scene-land">${t.base}</div>${residents?`<div class="scene-village" aria-label="Köyün sevimli sakinleri" style="display:flex;justify-content:center;gap:18px;font-size:2.25rem;margin:.15rem 0">${residents}</div>`:''}<div class="scene-items">${shown.map(x=>`<span class="scene-item">${x}</span>`).join('')||'<span class="scene-hint">İlk konunu tamamla, dünyan büyüsün! 🌟</span>'}</div><div class="scene-foot">🎁 ${rewards}/100 sürpriz &nbsp; 🏅 ${state.badges.length} rozet</div></div>`}
 function worldPicker(){view='world';app.innerHTML=`${nav()}<div class="card"><h1>🌎 Duru'nun Dünyası</h1><p>İstediğin zaman başka bir dünyaya geçebilirsin. Puanların, rozetlerin ve sürprizlerin korunur.</p>${worldScene()}<h3>Dünyanı seç</h3><div class="world-options">${WORLD_OPTIONS.map(([name,emoji])=>`<button class="world-option ${state.worldChoice===name?'chosen':''}" onclick="chooseWorld('${name}')"><span>${emoji}</span>${name}${state.worldChoice===name?' ✓':''}</button>`).join('')}</div></div>`}
 function chooseWorld(name){if(!WORLD_OPTIONS.some(w=>w[0]===name))return;state.worldChoice=name;persist();worldPicker()}
 const DURU_REVIEW_UNLOCK_ALL_V625=false;
@@ -1162,6 +1162,12 @@ function addExitV617(){
  bar.innerHTML='<span style="font-size:.9rem;opacity:.86">💾 Testin kaldığın yer otomatik kaydedilir.</span><button type="button" id="test-exit-v617" class="test-exit" onclick="exitTestV617()">↩ Testten çık</button>';
  host.insertBefore(bar,host.firstChild);
 }
+function pausedTestLabelV647(saved){
+ const subjects=[...new Set((saved?.session?.keys||saved?.session?.qs?.map(q=>q.c)||[]).map(k=>String(k).split('|')[0]).filter(c=>topics[c]))];
+ const isGlobalGTT=saved?.course==='GTT Genel'||subjects.length>1;
+ const subject=topics[saved?.course]?saved.course:(subjects.length===1?subjects[0]:'');
+ return isGlobalGTT?'Genel GTT':saved?.session?.kind==='general'&&subject?subject+' GTT':subject||'Test';
+}
 function exitTestV617(){
  if(!session)return home();
  recordTestV617(testUiStageV617);
@@ -1169,7 +1175,8 @@ function exitTestV617(){
  home();
  if(!document.getElementById('paused-test-v617')){
   const host=document.getElementById('app');let box=document.createElement('div');box.id='paused-test-v617';box.className='paused-test-notice';
-  box.innerHTML='<strong>⏸ Testin duraklatıldı.</strong><div>Yanıtların kaydedildi. Bu uygulamayı tekrar açtığında test otomatik olarak aynı sorudan devam edecek. Bitmeden başka test başlayamaz.</div><button class="primary" onclick="resumeSavedTestV617()">▶ Şimdi devam et</button>';
+  const testLabel=pausedTestLabelV647(savedTestV617());
+  box.innerHTML='<strong>⏸ '+esc(testLabel)+' Testin Duraklatıldı</strong><div>Yanıtların kaydedildi. Bu uygulamayı tekrar açtığında test otomatik olarak aynı sorudan devam edecek. Bitmeden başka test başlayamaz.</div><button class="primary" onclick="resumeSavedTestV617()">▶ Şimdi devam et</button>';
   host.prepend(box);
  }
 }
@@ -5327,5 +5334,7 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
 })();
 
 </script>
+
+<!-- V6.47: ders/GTT etiketli duraklatma uyarısı ve özgün Sevimli Hayvanlar Köyü sahnesi. Öğrenci kayıtları korunur. -->
 
 <script>if('serviceWorker' in navigator&&location.protocol==='https:'){window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(()=>{}));}</script>
