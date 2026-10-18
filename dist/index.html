@@ -1176,7 +1176,7 @@ function exitTestV617(){
  if(!document.getElementById('paused-test-v617')){
   const host=document.getElementById('app');let box=document.createElement('div');box.id='paused-test-v617';box.className='paused-test-notice';
   const testLabel=pausedTestLabelV647(savedTestV617());
-  box.innerHTML='<strong>⏸ '+esc(testLabel)+' Testin Duraklatıldı</strong><div>Yanıtların kaydedildi. Bu uygulamayı tekrar açtığında test otomatik olarak aynı sorudan devam edecek. Bitmeden başka test başlayamaz.</div><button class="primary" onclick="resumeSavedTestV617()">▶ Şimdi devam et</button>';
+  box.innerHTML='<strong>⏸ '+esc(testLabel)+' Testin Duraklatıldı</strong><div>Derse devam edebilmek için bu testi tamamlamalısın</div><button class="primary" onclick="resumeSavedTestV617()">▶ Şimdi devam et</button>';
   host.prepend(box);
  }
 }
@@ -4669,7 +4669,7 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
       const box = document.createElement('div');
       box.id = 'paused-test-v617';
       box.className = 'paused-test-notice';
-      box.innerHTML = '<strong>⏸ ' + esc(labelV648(record)) + ' Testin Duraklatıldı</strong><div>Yanıtların ve her sorunun gerçek ders/konu kaynağı kaydedildi. Aynı sorudan güvenle devam edebilirsin.</div><button class="primary" onclick="resumeSavedTestV617()">▶ Şimdi devam et</button>';
+      box.innerHTML = '<strong>⏸ ' + esc(labelV648(record)) + ' Testin Duraklatıldı</strong><div>Derse devam edebilmek için bu testi tamamlamalısın</div><button class="primary" onclick="resumeSavedTestV617()">▶ Şimdi devam et</button>';
       host.prepend(box);
     }
     if (recoveryMessage && !document.getElementById('test-recovery-v648')) {
