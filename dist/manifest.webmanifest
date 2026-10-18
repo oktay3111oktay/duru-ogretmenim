@@ -1,0 +1,10 @@
+{
+  "name": "Duru'nun Akıllı Öğretmeni",
+  "short_name": "Öğretmenim",
+  "lang": "tr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7f5ff",
+  "theme_color": "#6d5bd0"
+}
