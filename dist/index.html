@@ -4835,6 +4835,7 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
   const DEFAULT_STATUS = 'Yalnızca bu cihaz';
   const AUX_KEYS = {
     activeTest: 'duru_teacher_active_test_v617',
+    testRecovery: 'duru_teacher_test_recovery_v648',
     lastScreen: 'duru_teacher_last_screen_v626',
     route: 'duru_teacher_current_screen_v33',
     gtt: 'duru_gtt_subject_choices_v644'
@@ -4956,6 +4957,16 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
     });
   }
 
+  async function idbClear(store) {
+    const database = await db();
+    return new Promise((resolve, reject) => {
+      const tx = database.transaction(store, 'readwrite');
+      tx.objectStore(store).clear();
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
   async function idbAll(store) {
     const database = await db();
     return new Promise((resolve, reject) => {
@@ -5064,6 +5075,77 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
     return out;
   }
 
+  const LEARNING_PROGRESS_FIELDS = new Set([
+    'done', 'scores', 'mistakes', 'history', 'generalPassed', 'generalSeen',
+    'pendingSession', 'lastTestScore', 'homeReaction', 'extraQuestionHistoryV621',
+    'recoveredTestSessionsV648'
+  ]);
+  const LEARNING_PROGRESS_AUX = new Set(['activeTest', 'testRecovery', 'lastScreen', 'route', 'gtt']);
+
+  function clearLearningAppState(appState, marker) {
+    const clean = clone(appState || {});
+    clean.done = {};
+    clean.scores = {};
+    clean.mistakes = {};
+    clean.history = {};
+    clean.generalPassed = {};
+    clean.generalSeen = {};
+    clean.extraQuestionHistoryV621 = {};
+    clean.recoveredTestSessionsV648 = [];
+    delete clean.pendingSession;
+    delete clean.lastTestScore;
+    delete clean.homeReaction;
+    for (const name of Object.keys(clean)) if (name.startsWith('repeat')) delete clean[name];
+    clean.learningProgressReset = clone(marker);
+    return clean;
+  }
+
+  function clearLearningAux(aux) {
+    return Object.assign({}, clone(aux || {}), {
+      activeTest: null,
+      testRecovery: [],
+      lastScreen: null,
+      route: null,
+      gtt: {}
+    });
+  }
+
+  function resetLearningSnapshot(snapshot) {
+    const result = clone(snapshot || currentSnapshot());
+    const marker = { id: uuid(), at: new Date().toISOString(), scope: 'tests-and-completed-topics' };
+    result.schemaVersion = 1;
+    result.appVersion = SYNC_VERSION;
+    result.appState = clearLearningAppState(result.appState, marker);
+    result.aux = clearLearningAux(result.aux);
+    return result;
+  }
+
+  function isLearningProgressPath(path) {
+    if (!Array.isArray(path) || !path.length) return false;
+    if (path[0] === 'appState') {
+      if (path.length === 1) return true;
+      return LEARNING_PROGRESS_FIELDS.has(path[1]) || String(path[1]).startsWith('repeat');
+    }
+    if (path[0] === 'aux') return path.length === 1 || LEARNING_PROGRESS_AUX.has(path[1]);
+    return false;
+  }
+
+  function filterOperationsForReset(item, snapshot) {
+    const marker = snapshot && snapshot.appState && snapshot.appState.learningProgressReset;
+    const operations = Array.isArray(item && item.operations) ? item.operations : [];
+    if (!marker || item.progressResetId === marker.id) return operations;
+    return operations.flatMap((operation) => {
+      const joined = Array.isArray(operation.path) ? operation.path.join('/') : '';
+      if (joined === 'appState' && operation.type === 'set') {
+        return [Object.assign({}, operation, { value: clearLearningAppState(operation.value, marker) })];
+      }
+      if (joined === 'aux' && operation.type === 'set') {
+        return [Object.assign({}, operation, { value: clearLearningAux(operation.value) })];
+      }
+      return isLearningProgressPath(operation.path) ? [] : [operation];
+    });
+  }
+
   function conservativeInitialMerge(localSnapshot, remoteSnapshot) {
     if (!remoteSnapshot || !remoteSnapshot.appState) return clone(localSnapshot);
     if (!localSnapshot || !localSnapshot.appState) return clone(remoteSnapshot);
@@ -5095,7 +5177,12 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
     }
     const operations = diff(previous, now);
     if (!operations.length) return;
-    await idbPut(QUEUE_STORE, { id: uuid(), createdAt: new Date().toISOString(), operations });
+    await idbPut(QUEUE_STORE, {
+      id: uuid(),
+      createdAt: new Date().toISOString(),
+      progressResetId: now.appState && now.appState.learningProgressReset && now.appState.learningProgressReset.id || null,
+      operations
+    });
     await idbPut(SNAPSHOT_STORE, now, 'capturedSnapshot');
     setStatus(navigator.onLine ? 'Kaydedildi · eşitleme bekliyor' : 'Bağlantı bekleniyor', 'pending');
     scheduleSync(250);
@@ -5220,7 +5307,8 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
     for (const [name, key] of Object.entries(AUX_KEYS)) {
       const value = aux[name];
       if (value == null) {
-        if (name !== 'route') localStorage.removeItem(key);
+        if (name === 'route') sessionStorage.removeItem(key);
+        else localStorage.removeItem(key);
       } else if (name === 'route') sessionStorage.setItem(key, JSON.stringify(value));
       else localStorage.setItem(key, JSON.stringify(value));
     }
@@ -5242,7 +5330,7 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
       return remote;
     }
     for (const item of queue.sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)))) {
-      document = applyOps(document, item.operations || []);
+      document = applyOps(document, filterOperationsForReset(item, document));
     }
     // İlk kuyruk öğesinin UUID'si, sunucu kaydından sonra tarayıcı kapanırsa yeniden
     // gönderilen aynı grubu idempotent tutar; puan artışı iki kez uygulanmaz.
@@ -5252,7 +5340,7 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
       if (result.status === 'conflict') {
         remote = { version: result.version, document: result.document };
         document = remote.document || {};
-        for (const item of queue) document = applyOps(document, item.operations || []);
+        for (const item of queue) document = applyOps(document, filterOperationsForReset(item, document));
         continue;
       }
       if (result.status !== 'ok' && result.status !== 'idempotent') throw new Error('Beklenmeyen sunucu yanıtı.');
@@ -5509,6 +5597,61 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
     await syncNow({ rerender: true, backupReason: 'cloud-restore' });
   }
 
+  async function resetLearningProgress() {
+    const linked = readConfig().linked;
+    const accountSession = await getSession().catch(() => null);
+    if (linked && !(accountSession && accountSession.user)) throw new Error('Bağlı öğrenci hesabının oturumu açık değil. Önce yeniden giriş yapın.');
+
+    setStatus('Sıfırlama öncesi kayıt hazırlanıyor', 'pending');
+    if (linked) {
+      await captureChange();
+      await flushSnapshots();
+    }
+    await fullBackup('pre-progress-reset');
+
+    const pointCount = Math.max(0, Number(state && state.points) || 0);
+    const badgeCount = Array.isArray(state && state.badges) ? state.badges.length : 0;
+    const targetText = linked ? 'Bu öğrenci hesabındaki tüm bağlı cihazlar' : 'Yalnızca bu tarayıcı';
+    const approved = confirm(
+      targetText + ' için testler, sonuçlar, yanlış düzeltmeleri, ekstra test/GTT ilerlemeleri ve tamamlanan konu durumları sıfırlanacak.\n\n' +
+      pointCount + ' puan ve ' + badgeCount + ' rozet; koleksiyon, dünya, avatar, tema, PDF/kaynaklar ve veli ayarları korunacak. ' +
+      'Testler yeniden tamamlandığında yeni puan ve ödüller kazanılabileceği için toplam puan eski test geçmişiyle birebir eşleşmeyecek.\n\n' +
+      'Tam yedek indirildi. Kontrollü sıfırlamaya devam edilsin mi?'
+    );
+    if (!approved) {
+      setStatus(linked ? 'Kaydedildi' : DEFAULT_STATUS, linked ? 'ok' : '');
+      return;
+    }
+
+    setStatus('Öğrenme ilerlemesi sıfırlanıyor', 'pending');
+    let resetSnapshot;
+    if (linked) {
+      let remote = await pullDocument();
+      for (let attempt = 0; attempt < 4; attempt += 1) {
+        const candidate = resetLearningSnapshot(remote.document || currentSnapshot());
+        const result = await commitDocument(remote.version, candidate, uuid(), 'progress-reset');
+        if (result.status === 'conflict') {
+          remote = { version: result.version, document: result.document };
+          continue;
+        }
+        if (result.status !== 'ok' && result.status !== 'idempotent') throw new Error('Sıfırlama sunucuya kaydedilemedi.');
+        resetSnapshot = result.document || candidate;
+        break;
+      }
+      if (!resetSnapshot) throw new Error('Başka bir cihaz aynı anda kayıt yaptı. Sıfırlamayı yeniden deneyin.');
+    } else {
+      resetSnapshot = resetLearningSnapshot(currentSnapshot());
+    }
+
+    await idbClear(QUEUE_STORE);
+    if (typeof session !== 'undefined') session = null;
+    if (typeof chosenAnswer !== 'undefined') chosenAnswer = null;
+    applySnapshotLocally(resetSnapshot, true);
+    await idbPut(SNAPSHOT_STORE, resetSnapshot, 'capturedSnapshot');
+    setStatus(linked ? 'Sıfırlama tüm bağlı cihazlara kaydedildi' : 'Bu tarayıcıdaki ilerleme sıfırlandı', 'ok');
+    alert('Sıfırlama tamamlandı. İlk konu açık, sonraki konular kilitli başlangıç düzenine döndü. Puanlar, rozetler, koleksiyon, kişisel ayarlar ve yüklenen kaynaklar korundu.');
+  }
+
   function installUi() {
     const style = document.createElement('style');
     style.textContent = `
@@ -5526,7 +5669,7 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
     document.body.appendChild(badge);
     const modal = document.createElement('div');
     modal.id = 'duru-sync-modal-v646';
-    modal.innerHTML = `<section class="sync-panel" role="dialog" aria-modal="true" aria-label="Cihazlar arası senkronizasyon"><div class="sync-row" style="justify-content:space-between;align-items:center"><h2 style="margin:0">☁ Cihazlar arası kayıt</h2><button type="button" id="duru-sync-close-v646">✕ Kapat</button></div><p id="duru-sync-detail-v646">${lastStatus}</p><details id="duru-sync-parent-setup-v646"><summary><b>⚙ Veli kurulumu</b></summary><div class="sync-note">Kurulum yapılıncaya kadar Öğretmenim yalnızca bu cihazda çalışır. Aşağıdaki teknik bilgiler veli tarafından bir kez girilir. Service role anahtarı veya yönetici şifresi kesinlikle girilmez.</div><label>Supabase proje adresi<input id="duru-sync-url-v646" inputmode="url" placeholder="https://...supabase.co"></label><label>Publishable key<input id="duru-sync-key-v646" autocomplete="off" placeholder="sb_publishable_..."></label><label>Senkronizasyon e-posta adresi<input id="duru-sync-email-v646" type="email" autocomplete="email"></label><div class="sync-row"><button type="button" id="duru-sync-save-config-v646">Veli kurulumunu kaydet</button></div></details><hr><div class="sync-note">Tek kullanıcı vardır. Duru yalnızca şifreyi girer; e-posta adresi ve teknik ayarlar cihazda hatırlanır. Şifre hiçbir dosyaya kaydedilmez.</div><label>Öğretmenim şifresi<input id="duru-sync-password-v646" type="password" autocomplete="current-password"></label><div class="sync-row"><button type="button" id="duru-sync-signin-v646">Giriş yap</button><button type="button" id="duru-sync-signout-v646">Bu cihazın oturumunu kapat</button></div><hr><div class="sync-row"><button type="button" id="duru-sync-safety-v646">1. Güvenlik yedeğini indir</button><button type="button" id="duru-sync-migrate-v646">2. Mevcut kaydı hesaba aktar</button><button type="button" id="duru-sync-now-v646">Şimdi eşitle</button></div><div class="sync-row"><button type="button" id="duru-sync-backup-v646">Tam yedek indir</button><button type="button" id="duru-sync-list-backups-v646">Kurtarma kayıtlarını göster</button></div><div id="duru-sync-backups-v646"></div></section>`;
+    modal.innerHTML = `<section class="sync-panel" role="dialog" aria-modal="true" aria-label="Cihazlar arası senkronizasyon"><div class="sync-row" style="justify-content:space-between;align-items:center"><h2 style="margin:0">☁ Cihazlar arası kayıt</h2><button type="button" id="duru-sync-close-v646">✕ Kapat</button></div><p id="duru-sync-detail-v646">${lastStatus}</p><details id="duru-sync-parent-setup-v646"><summary><b>⚙ Veli kurulumu</b></summary><div class="sync-note">Kurulum yapılıncaya kadar Öğretmenim yalnızca bu cihazda çalışır. Aşağıdaki teknik bilgiler veli tarafından bir kez girilir. Service role anahtarı veya yönetici şifresi kesinlikle girilmez.</div><label>Supabase proje adresi<input id="duru-sync-url-v646" inputmode="url" placeholder="https://...supabase.co"></label><label>Publishable key<input id="duru-sync-key-v646" autocomplete="off" placeholder="sb_publishable_..."></label><label>Senkronizasyon e-posta adresi<input id="duru-sync-email-v646" type="email" autocomplete="email"></label><div class="sync-row"><button type="button" id="duru-sync-save-config-v646">Veli kurulumunu kaydet</button></div></details><hr><div class="sync-note">Tek kullanıcı vardır. Duru yalnızca şifreyi girer; e-posta adresi ve teknik ayarlar cihazda hatırlanır. Şifre hiçbir dosyaya kaydedilmez.</div><label>Öğretmenim şifresi<input id="duru-sync-password-v646" type="password" autocomplete="current-password"></label><div class="sync-row"><button type="button" id="duru-sync-signin-v646">Giriş yap</button><button type="button" id="duru-sync-signout-v646">Bu cihazın oturumunu kapat</button></div><hr><div class="sync-row"><button type="button" id="duru-sync-safety-v646">1. Güvenlik yedeğini indir</button><button type="button" id="duru-sync-migrate-v646">2. Mevcut kaydı hesaba aktar</button><button type="button" id="duru-sync-now-v646">Şimdi eşitle</button></div><div class="sync-row"><button type="button" id="duru-sync-backup-v646">Tam yedek indir</button><button type="button" id="duru-sync-list-backups-v646">Kurtarma kayıtlarını göster</button></div><div id="duru-sync-backups-v646"></div><hr><div class="sync-note"><b>Kontrollü ilerleme sıfırlama</b><br>Önce tam yedek indirir; yalnızca test ve tamamlanan konu ilerlemesini temizler. Puanlar, rozetler, kişisel ayarlar ve kaynaklar korunur.</div><div class="sync-row"><button type="button" id="duru-sync-reset-progress-v649">Tüm testleri ve işlenmiş dersleri sıfırla</button></div></section>`;
     document.body.appendChild(modal);
     document.getElementById('duru-sync-close-v646').onclick = () => modal.classList.remove('open');
     modal.addEventListener('click', (event) => { if (event.target === modal) modal.classList.remove('open'); });
@@ -5546,6 +5689,7 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
     document.getElementById('duru-sync-now-v646').onclick = () => syncNow({ rerender: true });
     document.getElementById('duru-sync-backup-v646').onclick = () => fullBackup('manual').catch(showError);
     document.getElementById('duru-sync-list-backups-v646').onclick = () => listBackups().catch(showError);
+    document.getElementById('duru-sync-reset-progress-v649').onclick = () => resetLearningProgress().catch(showError);
   }
 
   async function renderModalState() {
@@ -5617,7 +5761,15 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
   }
 
   if (window.__DURU_SYNC_TEST_MODE__) {
-    window.__DURU_SYNC_V646_TEST__ = { diff, applyOps, conservativeInitialMerge, hasMeaningfulLearningProgress };
+    window.__DURU_SYNC_V646_TEST__ = {
+      diff,
+      applyOps,
+      conservativeInitialMerge,
+      hasMeaningfulLearningProgress,
+      resetLearningSnapshot,
+      isLearningProgressPath,
+      filterOperationsForReset
+    };
   } else {
     boot().catch(showError);
   }
