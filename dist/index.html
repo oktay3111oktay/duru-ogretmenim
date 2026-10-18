@@ -1,4 +1,4 @@
-<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>5. Sınıf Öğretmenim — V6.48</title><meta name="theme-color" content="#6d5bd0"><link rel="manifest" href="./manifest.webmanifest"><style>
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>5. Sınıf Öğretmenim — V6.48.1</title><meta name="theme-color" content="#6d5bd0"><link rel="manifest" href="./manifest.webmanifest"><style>
 :root{font-family:system-ui,-apple-system,sans-serif;color:#26334b;background:#f4f3ec}*{box-sizing:border-box}body{margin:0}header{padding:15px max(16px,calc((100vw - 1040px)/2));background:white;display:flex;align-items:center;justify-content:space-between;gap:8px;box-shadow:0 2px 12px #0001}header strong{font-size:clamp(17px,3.5vw,23px);line-height:1.2}header .right{display:flex;gap:8px;align-items:center;white-space:nowrap}main{max-width:1040px;margin:auto;padding:18px 15px 55px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px}.card{background:#fff;padding:18px;border-radius:19px;box-shadow:0 3px 15px #0000000a;margin-bottom:14px}button,input,textarea,select{font:inherit}button{border:0;border-radius:12px;padding:11px 14px;background:#e8e7f7;color:#27334b;font-weight:700;cursor:pointer}button:disabled{opacity:.48;cursor:not-allowed}.primary{background:#6750d9;color:white}.green{background:#dcf8e7}.small{font-size:13px}.muted{color:#69768a}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}.subject{min-height:125px;text-align:left;font-size:18px}.subject span{display:block;font-size:35px;margin-bottom:13px}.progress{background:#e9eaf0;border-radius:30px;height:9px;overflow:hidden}.progress div{background:#32b78b;height:100%}.answer{display:block;width:100%;text-align:left;margin:8px 0;background:#f0effa}.answer.selected{outline:3px solid #7454de}.badge{display:inline-block;background:#ede8ff;border-radius:20px;padding:5px 10px;margin:3px;font-size:13px}.prize{font-size:55px;text-align:center;animation:pop .5s ease}.prizecard{text-align:center;border-radius:14px;background:#faf3ff;padding:12px;min-height:130px}.prizecard .big{font-size:43px}.tag{font-size:11px;color:#7559a6}.locked{opacity:.6}.section{margin-top:32px}.avatar{font-size:58px}.world{font-size:40px;line-height:1.7}.pill{background:#f2edf9;padding:7px 10px;border-radius:14px}textarea,input{border:1px solid #cbd0dc;border-radius:12px;padding:10px;width:100%;background:white;color:#25334a}input[type=checkbox]{width:auto}.warning{background:#fff2db;padding:12px;border-radius:12px}.success{background:#e0f8e7;padding:12px;border-radius:12px}a{color:#6750d9}.hide{display:none}@keyframes pop{from{transform:scale(.4);opacity:0}75%{transform:scale(1.15)}to{transform:scale(1);opacity:1}}body.dark{background:#181e2c;color:#f2f3fb}body.dark header,body.dark .card{background:#293247}body.dark button{background:#454f6c;color:#fff}body.dark .primary{background:#7759e8}body.dark .muted{color:#c3cadd}body.dark input,body.dark textarea{background:#202a3c;color:white}body.dark .prizecard{background:#39415b}body.dark .warning{background:#51412e}body.dark .success{background:#285041}@media(max-width:420px){.card{padding:14px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.subject{font-size:15px;min-height:112px}}
 .scene{position:relative;border-radius:20px;min-height:245px;overflow:hidden;padding:15px;color:#163c5a;margin:12px 0;box-shadow:inset 0 -12px 35px #0002}.scene-title{font-size:20px;font-weight:800;text-shadow:0 1px 5px #fff9}.scene-title span{float:right;font-size:13px;background:#ffffffa8;padding:5px 9px;border-radius:20px}.scene-cloud{text-align:center;font-size:24px;opacity:.9}.scene-land{text-align:center;font-size:77px;filter:drop-shadow(0 7px 4px #0003);animation:floatworld 4s ease-in-out infinite}.scene-items{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;min-height:53px}.scene-item{font-size:31px;animation:pop .45s ease}.scene-hint{background:#ffffffc9;border-radius:14px;padding:8px;font-size:13px;text-align:center}.scene-foot{text-align:center;font-weight:700;font-size:13px;background:#ffffffb8;border-radius:14px;padding:7px;margin-top:10px}.world-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.world-option{min-height:100px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px}.world-option span{font-size:32px}.world-option.chosen{outline:3px solid #31ad86}@keyframes floatworld{50%{transform:translateY(-5px)}}
 /* Avatar Studio V2.3 */
@@ -5626,5 +5626,112 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
 <!-- V6.47: ders/GTT etiketli duraklatma uyarısı ve özgün Sevimli Hayvanlar Köyü sahnesi. Öğrenci kayıtları korunur. -->
 
 <!-- V6.48: versioned test sessions, verified course/topic provenance, safe legacy recovery. -->
+
+<script id="duru-v6481-paused-test-hotfix">
+/* V6.48.1 - Prefer the immutable question identity over stale synced labels. */
+(function () {
+  'use strict';
+  const ACTIVE_KEY = 'duru_teacher_active_test_v617';
+  const COURSE_ALIASES = {
+    'Din': 'Din Kültürü',
+    'Din Kültürü ve Ahlak Bilgisi': 'Din Kültürü',
+    'Peygamberimizin Hayatı Dersi': 'Peygamberimizin Hayatı',
+    'Fen': 'Fen Bilimleri'
+  };
+
+  function validCourse(value) {
+    const raw = String(value || '').trim();
+    const normalized = COURSE_ALIASES[raw] || raw;
+    return typeof topics === 'object' && topics[normalized] ? normalized : '';
+  }
+
+  function identityCourse(question) {
+    const id = String(question?.id || '');
+    if (/^FEN-/i.test(id)) return 'Fen Bilimleri';
+    if (/^TURK-/i.test(id)) return 'Türkçe';
+    if (/^SOS-/i.test(id)) return 'Sosyal Bilgiler';
+    if (/^DE-/i.test(id)) return 'Almanca';
+    if (/^EN-/i.test(id)) return 'İngilizce';
+    if (/^(?:MAT[.-]|MATEMATIK\|)/i.test(id)) return 'Matematik';
+    const religious = id.match(/^REL-(Din Kültürü|Peygamberimizin Hayatı)-/i);
+    if (religious) return religious[1].toLocaleLowerCase('tr-TR').startsWith('din') ? 'Din Kültürü' : 'Peygamberimizin Hayatı';
+    const pipeCourse = validCourse(id.split('|')[0]);
+    if (pipeCourse) return pipeCourse;
+    return '';
+  }
+
+  function identityTopic(question) {
+    const id = String(question?.id || '');
+    let match = id.match(/^(?:FEN|TURK|SOS|DE|EN)-(\d+)-/i);
+    if (!match) match = id.match(/^REL-(?:Din Kültürü|Peygamberimizin Hayatı)-(\d+)-/i);
+    if (!match) return Number.isInteger(Number(question?.t)) ? Number(question.t) : Number(question?.sourceTopicId);
+    return Number(match[1]);
+  }
+
+  function repairQuestion(question) {
+    if (!question || typeof question !== 'object') return { question, changed: false, proven: false };
+    const provenCourse = identityCourse(question);
+    const fallbackCourse = validCourse(question.c) || validCourse(question.sourceCourseId);
+    const courseId = provenCourse || fallbackCourse;
+    if (!courseId) return { question, changed: false, proven: false };
+    const topicId = identityTopic(question);
+    const validTopic = Number.isInteger(topicId) && topics[courseId]?.[topicId] ? topicId : Number(question.t ?? question.sourceTopicId);
+    const changed = question.c !== courseId || question.sourceCourseId !== courseId || question.t !== validTopic || question.sourceTopicId !== validTopic;
+    return {
+      question: { ...question, c: courseId, sourceCourseId: courseId, t: validTopic, sourceTopicId: validTopic },
+      changed,
+      proven: !!provenCourse
+    };
+  }
+
+  function repairActiveTest() {
+    let raw;
+    try { raw = JSON.parse(localStorage.getItem(ACTIVE_KEY) || 'null'); } catch (_) { return null; }
+    if (!raw?.session || !Array.isArray(raw.session.qs) || !raw.session.qs.length) return null;
+    const fixed = raw.session.qs.map(repairQuestion);
+    const provenCourses = [...new Set(fixed.filter(x => x.proven).map(x => x.question.sourceCourseId))];
+    if (provenCourses.length !== 1) return null;
+    const actualCourse = provenCourses[0];
+    if (fixed.some(x => x.proven && x.question.sourceCourseId !== actualCourse)) return null;
+    const repairedQuestions = fixed.map(x => x.question);
+    const sourceKeys = [...new Set(repairedQuestions.map(q => q.sourceCourseId + '|' + q.sourceTopicId))];
+    const topicIds = [...new Set(repairedQuestions.map(q => q.sourceTopicId))];
+    const pending = Array.isArray(raw.session.pending) ? raw.session.pending.map(repairQuestion).map(x => x.question) : raw.session.pending;
+    const changed = raw.courseId !== actualCourse || raw.course !== actualCourse || fixed.some(x => x.changed);
+    if (!changed) return actualCourse;
+    const repaired = {
+      ...raw,
+      schemaVersion: 2,
+      appVersion: 6481,
+      courseId: actualCourse,
+      course: actualCourse,
+      topicId: topicIds.length === 1 ? topicIds[0] : (raw.topicId ?? raw.topic ?? 0),
+      topic: topicIds.length === 1 ? topicIds[0] : (raw.topic ?? raw.topicId ?? 0),
+      sourceKeys,
+      revision: (Number(raw.revision) || 0) + 1,
+      updatedAt: new Date().toISOString(),
+      session: { ...raw.session, qs: repairedQuestions, pending, keys: sourceKeys }
+    };
+    localStorage.setItem(ACTIVE_KEY, JSON.stringify(repaired));
+    return actualCourse;
+  }
+
+  const previousHome = home;
+  home = function () {
+    repairActiveTest();
+    return previousHome.apply(this, arguments);
+  };
+  const previousResume = resumeSavedTestV617;
+  resumeSavedTestV617 = function () {
+    repairActiveTest();
+    return previousResume.apply(this, arguments);
+  };
+
+  const repairedCourse = repairActiveTest();
+  if (repairedCourse && typeof view !== 'undefined' && view === 'home') home();
+  window.__DURU_V6481_TEST__ = { repairActiveTest, identityCourse };
+})();
+</script>
+<!-- V6.48.1: stale Din/Fen paused-test labels are repaired from immutable question IDs. -->
 
 <script>if('serviceWorker' in navigator&&location.protocol==='https:'){window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(()=>{}));}</script>
