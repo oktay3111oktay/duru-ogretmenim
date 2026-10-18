@@ -4606,6 +4606,16 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
     return /^https:\/\//i.test(c.supabaseUrl) && c.publishableKey.length > 20;
   }
 
+  function hasMeaningfulLearningProgress(snapshot) {
+    const app = snapshot && snapshot.appState ? snapshot.appState : {};
+    if ((Number(app.points) || 0) > 0) return true;
+    if (Object.values(app.done || {}).some(Boolean)) return true;
+    for (const name of ['scores', 'mistakes', 'history', 'collection', 'generalPassed', 'generalSeen', 'materials', 'materialQuestions', 'badgeDesigns']) {
+      if (Object.keys(app[name] || {}).length) return true;
+    }
+    return ['badges', 'custom', 'days'].some((name) => Array.isArray(app[name]) && app[name].length > 0);
+  }
+
   function db() {
     if (!('indexedDB' in window)) return Promise.reject(new Error('Bu tarayıcı çevrimdışı kuyruğu desteklemiyor.'));
     if (!dbPromise) dbPromise = new Promise((resolve, reject) => {
@@ -4857,7 +4867,18 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
     const result = await response.json();
     if (!response.ok) throw new Error(result.msg || result.error_description || 'Şifre doğru değil veya hesap henüz kurulmamış.');
     await saveSession(result);
-    setStatus('Giriş başarılı · güvenli aktarım bekleniyor', 'pending');
+    const remote = await pullDocument();
+    const local = currentSnapshot();
+    if (remote.document && !hasMeaningfulLearningProgress(local)) {
+      applySnapshotLocally(remote.document, true);
+      await idbPut(SNAPSHOT_STORE, remote.document, 'capturedSnapshot');
+      writeConfig(Object.assign(readConfig(), { linked: true }));
+      await syncFiles();
+      setStatus('Kaydedildi', 'ok');
+      renderModalState();
+      return result;
+    }
+    setStatus(remote.document ? 'Giriş başarılı · bu cihazdaki kayıt için önce güvenlik yedeği alın' : 'Giriş başarılı · güvenli aktarım bekleniyor', 'pending');
     renderModalState();
     return result;
   }
@@ -5299,7 +5320,7 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
   }
 
   if (window.__DURU_SYNC_TEST_MODE__) {
-    window.__DURU_SYNC_V646_TEST__ = { diff, applyOps, conservativeInitialMerge };
+    window.__DURU_SYNC_V646_TEST__ = { diff, applyOps, conservativeInitialMerge, hasMeaningfulLearningProgress };
   } else {
     boot().catch(showError);
   }
