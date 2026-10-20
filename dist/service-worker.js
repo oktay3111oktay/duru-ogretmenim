@@ -1,4 +1,4 @@
-const CACHE='duru-ogretmenim-v6482-network-first';
+const CACHE='duru-ogretmenim-v6490-network-first';
 const APP_SHELL=['./','./index.html','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
