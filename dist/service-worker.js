@@ -1,4 +1,4 @@
-const CACHE='duru-ogretmenim-v6510-tests-locks-wrong-gtt';
+const CACHE='duru-ogretmenim-v6511-single-status-math-gtt';
 const APP_SHELL=['./','./index.html','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
