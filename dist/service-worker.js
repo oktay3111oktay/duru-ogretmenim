@@ -1,4 +1,4 @@
-const CACHE='duru-ogretmenim-v6500-focus-reward';
+const CACHE='duru-ogretmenim-v6510-tests-locks-wrong-gtt';
 const APP_SHELL=['./','./index.html','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{

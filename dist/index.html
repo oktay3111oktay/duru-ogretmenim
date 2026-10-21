@@ -4444,6 +4444,7 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
   const DIN='Din Kültürü', SECOND='Peygamberimizin Hayatı';
   function isUnlocked(c,i){
     if(!Number.isInteger(i)||i<0)return false;
+    if(typeof window.topicAccessibleV651==='function')return window.topicAccessibleV651(c,i);
     if(c===SECOND&&i===0){const list=topics[DIN]||[];return !!(list.length&&done(DIN,list.length-1));}
     return i===0||done(c,i-1);
   }
@@ -5078,7 +5079,9 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
   const LEARNING_PROGRESS_FIELDS = new Set([
     'done', 'scores', 'mistakes', 'history', 'generalPassed', 'generalSeen',
     'pendingSession', 'lastTestScore', 'homeReaction', 'extraQuestionHistoryV621',
-    'recoveredTestSessionsV648'
+    'recoveredTestSessionsV648', 'startedTopicsV651', 'requiredExtraV651',
+    'wrongQuestionLogV651', 'extraQuestionHistoryV651', 'normalQuestionHistoryV651',
+    'wrongGttCursorV651', 'wrongLegacyMigratedV651', 'wrongLegacyUnmatchedV651'
   ]);
   const LEARNING_PROGRESS_AUX = new Set(['activeTest', 'testRecovery', 'lastScreen', 'route', 'gtt']);
 
@@ -5092,6 +5095,14 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
     clean.generalSeen = {};
     clean.extraQuestionHistoryV621 = {};
     clean.recoveredTestSessionsV648 = [];
+    clean.startedTopicsV651 = {};
+    clean.requiredExtraV651 = {};
+    clean.wrongQuestionLogV651 = [];
+    clean.extraQuestionHistoryV651 = {};
+    clean.normalQuestionHistoryV651 = {};
+    clean.wrongGttCursorV651 = {};
+    clean.wrongLegacyMigratedV651 = true;
+    clean.wrongLegacyUnmatchedV651 = 0;
     delete clean.pendingSession;
     delete clean.lastTestScore;
     delete clean.homeReaction;
@@ -5153,7 +5164,7 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
     const remote = remoteSnapshot.appState;
     const merged = Object.assign({}, clone(remote), clone(local));
     merged.points = Math.max(Number(local.points) || 0, Number(remote.points) || 0);
-    for (const field of ['done', 'generalPassed', 'generalSeen', 'collection', 'badgeDesigns', 'materials', 'materialQuestions', 'mathPractice']) {
+    for (const field of ['done', 'generalPassed', 'generalSeen', 'collection', 'badgeDesigns', 'materials', 'materialQuestions', 'mathPractice', 'startedTopicsV651']) {
       merged[field] = mergeMaps(remote[field], local[field], (r, l) => {
         if (typeof r === 'boolean' || typeof l === 'boolean') return !!r || !!l;
         if (isObject(r) && isObject(l)) return Object.assign({}, clone(r), clone(l));
@@ -5164,6 +5175,9 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
     for (const field of ['badges', 'days', 'custom']) merged[field] = unionArray(remote[field], local[field]);
     merged.history = mergeMaps(remote.history, local.history, (r, l) => unionArray(r, l));
     merged.mistakes = mergeMaps(remote.mistakes, local.mistakes, (r, l) => unionArray(r, l));
+    merged.normalQuestionHistoryV651 = mergeMaps(remote.normalQuestionHistoryV651, local.normalQuestionHistoryV651, (r, l) => unionArray(r, l));
+    merged.extraQuestionHistoryV651 = mergeMaps(remote.extraQuestionHistoryV651, local.extraQuestionHistoryV651, (r, l) => unionArray(r, l));
+    merged.wrongQuestionLogV651 = unionArray(remote.wrongQuestionLogV651, local.wrongQuestionLogV651);
     return { schemaVersion: 1, appVersion: SYNC_VERSION, appState: merged, aux: Object.assign({}, remoteSnapshot.aux || {}, localSnapshot.aux || {}) };
   }
 
@@ -6100,4 +6114,281 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
 </script>
 <!-- /V6.49 -->
 
-<script>if('serviceWorker' in navigator&&location.protocol==='https:'){window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{}));}</script>
+<!-- V6.51 — unified topic tests, mandatory remediation, wrong-answer GTT, lock controls and central resources -->
+<style id="duru-v651-style">
+  .v651-required-note{margin:10px 0;padding:10px 12px;border-radius:12px;background:#fff0f0;color:#8b1d2c;border:1px solid #e9a0aa;font-weight:750;line-height:1.45}
+  .v651-extra-required{background:#c9364c!important;color:#fff!important;border-color:#f27b8c!important;box-shadow:0 0 0 3px rgba(201,54,76,.18)!important}
+  .v651-wrong-option{display:flex!important;gap:10px;align-items:flex-start;margin:12px 0;padding:12px!important;border-radius:13px;background:#4b2530!important;color:#fff!important;border:1px solid #dc6577!important;font-weight:750;line-height:1.4}
+  .v651-wrong-option input{width:19px;height:19px;margin-top:2px;accent-color:#dc3545;flex:0 0 auto}
+  .v651-parent-lock{border:2px solid #82a7d7}
+  .v651-parent-lock .v651-lock-row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+  .v651-resource-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+  .v651-resource-item{padding:13px;border-radius:14px;background:#27364e;border:1px solid #ffffff24}
+  .v651-resource-item h3{margin-top:0}.v651-resource-item button,.v651-resource-item a{margin:4px 5px 4px 0}
+  .v651-result-warning{max-width:650px;margin:15px auto;text-align:left}
+  .v651-topic-status{margin:6px 0;color:#cfd8e8;font-size:13px;font-weight:700}
+  .v651-central-actions{display:flex;gap:9px;flex-wrap:wrap}
+  @media(max-width:520px){.v651-resource-grid{grid-template-columns:1fr}.v651-parent-lock .v651-lock-row{align-items:stretch}.v651-parent-lock button{width:100%}}
+</style>
+<script id="duru-v651-script">
+(function(){
+  'use strict';
+  const DIN='Din Kültürü',SECOND='Peygamberimizin Hayatı';
+  const jsonClone=value=>JSON.parse(JSON.stringify(value));
+  const stateKey=(c,t)=>String(c)+'|'+Number(t);
+  const textId=value=>String(value||'').normalize('NFKC').toLocaleLowerCase('tr-TR').replace(/\s+/g,' ').trim();
+  state.startedTopicsV651=state.startedTopicsV651&&typeof state.startedTopicsV651==='object'?state.startedTopicsV651:{};
+  state.requiredExtraV651=state.requiredExtraV651&&typeof state.requiredExtraV651==='object'?state.requiredExtraV651:{};
+  state.wrongQuestionLogV651=Array.isArray(state.wrongQuestionLogV651)?state.wrongQuestionLogV651:[];
+  state.extraQuestionHistoryV651=state.extraQuestionHistoryV651&&typeof state.extraQuestionHistoryV651==='object'?state.extraQuestionHistoryV651:{};
+  state.normalQuestionHistoryV651=state.normalQuestionHistoryV651&&typeof state.normalQuestionHistoryV651==='object'?state.normalQuestionHistoryV651:{};
+  state.wrongGttCursorV651=state.wrongGttCursorV651&&typeof state.wrongGttCursorV651==='object'?state.wrongGttCursorV651:{};
+  state.unlockAllV651=state.unlockAllV651===true;
+
+  function remediation(c,t){return !!state.requiredExtraV651[stateKey(c,t)]?.required}
+  function topicAccessible(c,i){
+    i=Number(i);if(!Number.isInteger(i)||i<0||!topics[c]?.[i])return false;
+    const own=stateKey(c,i);
+    if(state.unlockAllV651||state.startedTopicsV651[own]||done(c,i))return true;
+    if(c===SECOND&&i===0){const first=topics[DIN]||[],last=first.length-1;return last>=0&&done(DIN,last)&&!remediation(DIN,last)}
+    if(i===0)return true;
+    return done(c,i-1)&&!remediation(c,i-1);
+  }
+  window.topicAccessibleV651=topicAccessible;
+  window.unlockedAfter=function(c,i){
+    i=Number(i);if(!Number.isInteger(i)||i<0)return false;
+    return state.unlockAllV651||state.startedTopicsV651[stateKey(c,i+1)]||done(c,i+1)||(done(c,i)&&!remediation(c,i));
+  };
+
+  function markStarted(c,t){
+    const k=stateKey(c,t);if(state.startedTopicsV651[k])return;
+    state.startedTopicsV651[k]=new Date().toISOString();persist();
+  }
+  if(state.pendingSession?.course&&Number.isInteger(Number(state.pendingSession?.topic)))state.startedTopicsV651[stateKey(state.pendingSession.course,Number(state.pendingSession.topic))]=state.startedTopicsV651[stateKey(state.pendingSession.course,Number(state.pendingSession.topic))]||new Date().toISOString();
+
+  function validQuestion(q,c,t){
+    if(!q||typeof q.prompt!=='string'||!q.prompt.trim()||!Array.isArray(q.options)||q.options.length!==4)return null;
+    const options=q.options.map(String),answer=String(q.answer??'');
+    if(new Set(options).size!==4||options.filter(x=>x===answer).length!==1)return null;
+    return {...jsonClone(q),c:q.c||c,t:Number.isInteger(Number(q.t))?Number(q.t):Number(t),prompt:String(q.prompt).trim(),answer,options};
+  }
+  function questionId(q){return textId((q.c||'')+'|'+Number(q.t)+'|'+q.prompt+'|'+q.answer)}
+  const poolCache=new Map();
+  function candidatePool(c,t){
+    const k=stateKey(c,t);if(poolCache.has(k))return poolCache.get(k).map(jsonClone);
+    const raw=[];
+    try{if(typeof v622AllQuestions==='function')raw.push(...v622AllQuestions(c,t))}catch(e){console.warn('Ana soru havuzu okunamadı:',c,t,e)}
+    try{const api=window.__DURU_V649_TEST__;if(api?.exact)raw.push(...api.exact(c,t));if(api?.school)raw.push(...api.school(c,t))}catch(e){console.warn('Okul soru havuzu okunamadı:',c,t,e)}
+    for(let n=0;n<700;n++){try{raw.push(makeQuestion(c,t,7000+n*37))}catch(_){}}
+    const seen=new Set(),out=[];
+    raw.forEach(item=>{const q=validQuestion(item,c,t);if(!q)return;const id=questionId(q);if(seen.has(id))return;seen.add(id);q._v651id=id;out.push(q)});
+    poolCache.set(k,out.map(jsonClone));return out.map(jsonClone);
+  }
+  function recordQuestionHistory(field,c,t,list){
+    const k=stateKey(c,t),old=Array.isArray(state[field][k])?state[field][k]:[];
+    state[field][k]=[...new Set([...old,...list.map(questionId)])].slice(-600);
+  }
+  function extraQuestions(c,t){
+    const k=stateKey(c,t),all=candidatePool(c,t),normal=new Set(state.normalQuestionHistoryV651[k]||[]),used=new Set(state.extraQuestionHistoryV651[k]||[]);
+    const fresh=all.filter(q=>!normal.has(questionId(q))&&!used.has(questionId(q)));
+    const unused=all.filter(q=>!used.has(questionId(q))&&!fresh.some(x=>questionId(x)===questionId(q)));
+    const attempt=Number(state.requiredExtraV651[k]?.extraAttempts||0),fallback=all.length?all.slice((attempt*10)%all.length).concat(all.slice(0,(attempt*10)%all.length)):[];
+    const seen=new Set(),selected=[];
+    [...fresh,...unused,...fallback].forEach(q=>{const id=questionId(q);if(selected.length>=10||seen.has(id))return;seen.add(id);selected.push(q)});
+    if(selected.length===10){recordQuestionHistory('extraQuestionHistoryV651',c,t,selected);persist()}
+    return selected;
+  }
+
+  function wrongSnapshot(q,chosen,kind,stamp,index){
+    const valid=validQuestion(q,q?.c,Number(q?.t));if(!valid)return null;
+    const qid=questionId(valid);
+    return {eventId:'v651-'+stamp+'-'+index+'-'+Math.random().toString(36).slice(2,8),id:qid,c:valid.c,t:valid.t,prompt:valid.prompt,answer:valid.answer,options:[...valid.options],chosen:chosen==null?null:String(chosen),kind:String(kind||'unknown'),sourceId:valid.sourceId||valid.privateSource?.sourceId||'',privateSource:valid.privateSource?jsonClone(valid.privateSource):null,skill:valid.skill||'',loggedAt:new Date().toISOString()};
+  }
+  function logInitialWrongs(s){
+    if(!s||s._wrongLoggedV651)return;
+    const stamp=Date.now();s.qs.forEach((q,i)=>{if(String(s.answers[i])===String(q.answer))return;const entry=wrongSnapshot(q,s.answers[i],s.kind,stamp,i);if(entry)state.wrongQuestionLogV651.push(entry)});
+    state.wrongQuestionLogV651=state.wrongQuestionLogV651.slice(-2500);s._wrongLoggedV651=true;
+  }
+  function wrongPool(scope){
+    const map=new Map();state.wrongQuestionLogV651.forEach(entry=>{if(scope&&entry.c!==scope)return;const q=validQuestion(entry,entry.c,entry.t);if(q)map.set(entry.id||questionId(q),{...q,id:entry.id||questionId(q),privateSource:entry.privateSource||q.privateSource||null})});
+    return [...map.values()];
+  }
+  function migrateLegacyWrongs(){
+    if(state.wrongLegacyMigratedV651)return;
+    const existing=new Set(state.wrongQuestionLogV651.map(x=>x.legacyId).filter(Boolean));let unmatched=0;
+    Object.entries(state.mistakes||{}).forEach(([k,items])=>{const split=k.lastIndexOf('|'),c=split>=0?k.slice(0,split):'',t=Number(split>=0?k.slice(split+1):NaN);if(!topics[c]?.[t])return;const byPrompt=new Map(candidatePool(c,t).map(q=>[textId(q.prompt),q]));(items||[]).forEach((item,i)=>{const legacyId='legacy|'+c+'|'+t+'|'+textId(item?.prompt)+'|'+i;if(existing.has(legacyId))return;const q=byPrompt.get(textId(item?.prompt));if(!q){unmatched++;return}const entry=wrongSnapshot(q,null,'legacy',Date.now(),i);if(entry){entry.legacyId=legacyId;state.wrongQuestionLogV651.push(entry);existing.add(legacyId)}})});
+    state.wrongLegacyMigratedV651=true;state.wrongLegacyUnmatchedV651=unmatched;state.wrongQuestionLogV651=state.wrongQuestionLogV651.slice(-2500);persist();
+  }
+
+  const startSessionBeforeV651=window.startSession;
+  window.startSession=startSession=function(qs,kind,keys){
+    const list=(Array.isArray(qs)?qs:[]).map((q,i)=>validQuestion(q,q?.c||course,Number.isInteger(Number(q?.t))?Number(q.t):topic)).filter(Boolean);
+    (keys||[]).forEach(k=>{const at=String(k).lastIndexOf('|');if(at>0)markStarted(String(k).slice(0,at),Number(String(k).slice(at+1)))});
+    const result=startSessionBeforeV651.call(this,list,kind,keys);
+    if(session?.qs&&kind==='normal'){
+      const grouped={};session.qs.forEach(q=>{const k=stateKey(q.c,q.t);(grouped[k]=grouped[k]||[]).push(q)});
+      Object.entries(grouped).forEach(([k,arr])=>{const at=k.lastIndexOf('|');recordQuestionHistory('normalQuestionHistoryV651',k.slice(0,at),Number(k.slice(at+1)),arr)});persist();
+    }
+    return result;
+  };
+
+  const lessonBeforeV651=window.lesson;
+  window.lesson=lesson=function(i,part=0){
+    const c=course,t=Number(i);if(!topicAccessible(c,t)){alert(t>0&&remediation(c,t-1)?'Bir sonraki konuya geçmek için önce zorunlu Ekstra Testte %80 başarı sağlamalısın.':'Bu konu kilitli. Önce bir önceki konuyu tamamlamalısın.');return}
+    markStarted(c,t);return lessonBeforeV651.apply(this,arguments);
+  };
+  const quizBeforeV651=window.startQuiz;
+  window.startQuiz=startQuiz=function(c,i,kind){
+    const t=Number(i);if(!topicAccessible(c,t)){alert(t>0&&remediation(c,t-1)?'Bir sonraki konuya geçmek için önce zorunlu Ekstra Testte %80 başarı sağlamalısın.':'Bu konu kilitli. Önce bir önceki konuyu tamamlamalısın.');return}
+    if(kind==='extra'){
+      if(!done(c,t)&&!remediation(c,t)){alert('Ekstra Test için önce Konu Testini tamamlamalısın.');return}
+      if(typeof savedTestV617==='function'&&savedTestV617())return resumeSavedTestV617();
+      if(state.pendingSession)return resumePending();
+      markStarted(c,t);const list=extraQuestions(c,t);
+      if(list.length!==10){alert('Bu konu için 10 farklı ve doğrulanmış Ekstra Test sorusu hazırlanamadı. Test açılmadı.');return}
+      course=c;topic=t;return startSession(list,'extra',[stateKey(c,t)]);
+    }
+    markStarted(c,t);return quizBeforeV651.apply(this,arguments);
+  };
+
+  function addResultWarning(html){const card=document.querySelector('#app .card');if(!card)return;const box=document.createElement('div');box.className='v651-required-note v651-result-warning';box.innerHTML=html;const button=card.querySelector('button.primary');if(button)button.before(box);else card.append(box)}
+  const initialBeforeV651=window.initialResult;
+  window.initialResult=initialResult=function(){
+    const result=initialBeforeV651.apply(this,arguments),s=session;if(!s||s._initialHandledV651)return result;
+    logInitialWrongs(s);const pct=s.qs.length?Math.round(100*s.initial/s.qs.length):0;
+    if(s.kind==='normal'){
+      const k=String(s.keys?.[0]||stateKey(course,topic));
+      if(pct<=80&&!state.requiredExtraV651[k])state.requiredExtraV651[k]={required:true,topicScore:pct,createdAt:new Date().toISOString(),extraAttempts:0,lastExtraScore:null};
+      else if(pct<=80){state.requiredExtraV651[k].required=true;state.requiredExtraV651[k].topicScore=state.requiredExtraV651[k].topicScore??pct}
+    }
+    if(s.kind==='extra'){
+      const k=String(s.keys?.[0]||stateKey(course,topic)),rec=state.requiredExtraV651[k]||{required:false,extraAttempts:0};
+      rec.extraAttempts=Number(rec.extraAttempts||0)+1;rec.lastExtraScore=pct;rec.lastAttemptAt=new Date().toISOString();rec.required=rec.required||pct<80;state.requiredExtraV651[k]=rec;s._extraPassedV651=pct>=80;
+    }
+    s._initialHandledV651=true;persist();
+    if(s.kind==='normal'&&pct<=80)addResultWarning('<b>%80’in altında puan aldığın için Ekstra Testi de çözmelisin.</b><br>Yanlışlarını düzeltmiş olsan bile bir sonraki konu için Ekstra Test zorunludur.');
+    if(s.kind==='extra'&&pct<80)addResultWarning('<b>Ekstra Testte henüz %80 başarı sağlanmadı.</b><br>Yanlışlarını düzelttikten sonra 10 soruluk yeni bir Ekstra Test çözeceksin.');
+    return result;
+  };
+
+  const finishBeforeV651=window.finishSession;
+  window.finishSession=finishSession=function(){
+    const s=session;if(!s)return finishBeforeV651.apply(this,arguments);
+    const k=String(s.keys?.[0]||stateKey(course,topic)),wrongOnly=!!s._wrongOnlyV651,wrongScope=s._wrongScopeV651||'';
+    if(s.kind==='extra'&&s._extraPassedV651){delete state.requiredExtraV651[k];persist()}
+    const failedExtra=s.kind==='extra'&&!s._extraPassedV651;
+    const result=finishBeforeV651.apply(this,arguments);
+    const card=document.querySelector('.completion-card');
+    if(card&&failedExtra){const h=card.querySelector('h1');if(h)h.textContent='Ekstra Teste devam';const note=document.createElement('div');note.className='v651-required-note';note.innerHTML='<b>%80 başarı sağlanana kadar Ekstra Test zorunludur.</b><br>Sıradaki test önce kullanılmamış sorulardan hazırlanacak; yeni soru kalmazsa önceki sorular yeniden kullanılabilir.';const btn=card.querySelector('button.primary:last-child');if(btn){btn.before(note);btn.setAttribute('onclick',`openCourse(${JSON.stringify(course)})`);btn.textContent='Yeni Ekstra Teste hazırlan'}}
+    if(card&&s.kind==='normal'&&remediation(course,topic)){const note=document.createElement('div');note.className='v651-required-note';note.textContent='%80’in altında puan aldığın için Ekstra Testi de çözmelisin.';const btn=card.querySelector('button.primary:last-child');if(btn)btn.before(note)}
+    if(card&&wrongOnly){const btn=card.querySelector('button.primary:last-child');if(btn){btn.setAttribute('onclick',wrongScope?`openCourse(${JSON.stringify(wrongScope)})`:'globalGTTScreen()');btn.textContent='GTT seçimine dön'}}
+    return result;
+  };
+
+  const questionBeforeV651=window.question;
+  window.question=question=function(){const r=questionBeforeV651.apply(this,arguments);if(session?._wrongOnlyV651){const label=document.querySelector('#app .card .row b');if(label)label.textContent='🔴 Yanlış Cevaplar GTT'}return r};
+
+  window.startWrongGttV651=function(scope=''){
+    const pool=wrongPool(scope);if(!pool.length){alert('Bu seçim için kaydedilmiş yanlış soru bulunmuyor.');return}
+    const cursorKey=scope||'__all__',cursor=Number(state.wrongGttCursorV651[cursorKey]||0),count=Math.min(10,pool.length),picked=[];
+    for(let i=0;i<count;i++)picked.push(jsonClone(pool[(cursor+i)%pool.length]));
+    state.wrongGttCursorV651[cursorKey]=(cursor+count)%pool.length;persist();course=scope||'GTT Genel';topic=Number(picked[0]?.t||0);
+    startSession(picked,'repeat',[...new Set(picked.map(q=>stateKey(q.c,q.t)))]);
+    if(session){session._wrongOnlyV651=true;session._wrongScopeV651=scope;persist();question()}
+  };
+
+  function topicCardInfo(card,c){
+    const learn=[...card.querySelectorAll('button')].find(b=>/Konuyu öğren|Tekrar çalış/i.test(b.textContent||''));if(!learn)return null;
+    const match=(learn.getAttribute('onclick')||'').match(/lesson\s*\(\s*(\d+)/);let i=match?Number(match[1]):Number(learn.dataset.topicIndex);
+    if(!Number.isInteger(i)){const cards=[...document.querySelectorAll('.course-topic,.fen-item,.rel-item,.teacher-lang-topic,.ger-topic,.eng-card')].filter(x=>[...x.querySelectorAll('button')].some(b=>/Konuyu öğren|Tekrar çalış/i.test(b.textContent||'')));i=cards.indexOf(card)}
+    return Number.isInteger(i)&&i>=0?{learn,i}:null;
+  }
+  function makeTestButton(c,i,kind,label){const b=document.createElement('button');b.type='button';b.textContent=label;b.dataset.v651Kind=kind;b.addEventListener('click',()=>startQuiz(c,i,kind));return b}
+  function decorateTopicCards(c){
+    const selector='.course-topic,.fen-item,.rel-item,.teacher-lang-topic,.ger-topic,.eng-card';
+    document.querySelectorAll(selector).forEach(card=>{
+      const info=topicCardInfo(card,c);if(!info)return;const {learn,i}=info,host=learn.closest('.course-actions,.fen-actions,.rel-actions,.teacher-lang-actions,.ger-actions,.eng-actions')||learn.parentElement||card;
+      let normal=[...card.querySelectorAll('button')].find(b=>/Konu testi/i.test(b.textContent||''));if(!normal){normal=makeTestButton(c,i,'normal','📝 Konu testi');host.appendChild(normal)}
+      let extra=[...card.querySelectorAll('button')].find(b=>/Ekstra test/i.test(b.textContent||''));if(!extra){extra=makeTestButton(c,i,'extra','✨ Ekstra test');host.appendChild(extra)}
+      const locked=!topicAccessible(c,i),extraReady=topicAccessible(c,i)&&done(c,i),required=remediation(c,i);
+      card.classList.toggle('duru-v645-locked',locked);learn.disabled=locked;normal.disabled=locked;extra.disabled=!extraReady;
+      [learn,normal].forEach(b=>{if(locked)b.title='Önce önceki konuyu tamamla';else b.removeAttribute('title')});
+      extra.classList.toggle('v651-extra-required',required);extra.textContent=required?'🔴 Zorunlu Ekstra Test':'✨ Ekstra test';extra.title=required?'Bir sonraki konu için %80 başarı gerekli':extraReady?'10 soruluk Ekstra Test':'Önce Konu Testini tamamla';
+      card.querySelectorAll('.v651-topic-status,.v651-required-note').forEach(x=>x.remove());
+      const status=document.createElement('div');status.className='v651-topic-status';status.textContent=done(c,i)?'✅ Konu testi tamamlandı':locked?'🔒 Kilitli':'📖 Öğrenmeye hazır';const head=card.querySelector('h2,h3,.fen-details strong');if(head)head.insertAdjacentElement('afterend',status);
+      if(required){const note=document.createElement('div');note.className='v651-required-note';note.textContent='%80’in altında puan aldığın için Ekstra Testi de çözmelisin.';host.insertAdjacentElement('beforebegin',note)}
+      card.querySelectorAll('.duru-school-test').forEach(b=>b.disabled=locked||!done(c,i));
+    });
+  }
+  function removeCourseResourceCards(){
+    document.querySelectorAll('#app .course-extra,#app .card,#app .fen-item').forEach(el=>{const h=el.querySelector(':scope > h2,:scope > h3');const title=(h?.textContent||'').trim();if(/^📎?\s*PDF\s*\/\s*fotoğraf kaynaklarım$/i.test(title)||/^📘?\s*MEB kaynakları$/i.test(title))el.remove()});
+  }
+  function ensureMathGtt(){
+    if(course!=='Matematik'||document.querySelector('button[onclick*="startGeneral"]'))return;
+    const completed=(topics[course]||[]).map((x,i)=>done(course,i)?{x,i}:null).filter(Boolean),box=document.createElement('section');box.className='course-extra course-general';box.innerHTML=`<div class="course-general-head"><h2>🧠 GTT · İsteğe bağlı</h2><span class="course-general-count">${completed.length} konu</span></div><p>GTT sonraki konuyu açmak için zorunlu değildir.</p>${completed.map(o=>`<label class="pill general-topic-choice"><input class="topicselect" type="checkbox" value="${o.i}" checked><span>${esc(o.x[0])}</span></label>`).join('')}<button class="primary general-start" onclick="startGeneral()" ${completed.length?'':'disabled'}>Seçili konulardan GTT başlat</button>`;app.appendChild(box);
+  }
+  function addSubjectWrongOptions(c){
+    const buttons=[...document.querySelectorAll('#app button')].filter(b=>/GTT başlat|Genel testi başlat/i.test(b.textContent||''));
+    buttons.forEach(btn=>{
+      if(btn.dataset.v651WrongBound)return;const handler=btn.onclick;if(typeof handler!=='function')return;
+      const panel=btn.closest('.course-general,.teacher-gtt-panel,.fen-item,.rel-item,.ger-topic,.eng-card')||btn.parentElement;if(!panel||panel.querySelector('.v651-subject-wrong'))return;
+      const count=wrongPool(c).length,label=document.createElement('label');label.className='v651-wrong-option v651-subject-wrong';label.innerHTML=`<input type="checkbox" data-v651-wrong="1" ${count?'':'disabled'}><span>🔴 Yanlış cevaplanan sorular <small>(${count} soru)</small></span>`;btn.before(label);
+      const check=label.querySelector('input');check.addEventListener('change',()=>{if(check.checked)panel.querySelectorAll('input[type="checkbox"]:not([data-v651-wrong])').forEach(x=>x.checked=false);btn.disabled=check.checked?count===0:btn.disabled});
+      panel.querySelectorAll('input[type="checkbox"]:not([data-v651-wrong])').forEach(x=>x.addEventListener('change',()=>{if(x.checked)check.checked=false}));
+      btn.onclick=null;btn.dataset.v651WrongBound='1';btn.addEventListener('click',event=>{if(check.checked){event.preventDefault();startWrongGttV651(c)}else handler.call(btn,event)});
+    });
+  }
+  function decorateCourseV651(c){if(view!=='course')return;ensureMathGtt();removeCourseResourceCards();decorateTopicCards(c);addSubjectWrongOptions(c)}
+
+  function decorateHomeV651(){
+    const heading=[...document.querySelectorAll('#app h2')].find(h=>/Araçlar/.test(h.textContent||'')),actions=heading?.parentElement?.querySelector('.teacher-parent-actions');if(!actions||actions.querySelector('.v651-pdf-tool'))return;
+    const pdf=document.createElement('button');pdf.className='pastel-mint v651-pdf-tool';pdf.textContent='📎 PDF / Fotoğraf';pdf.onclick=()=>openCentralResourcesV651();
+    const meb=document.createElement('button');meb.className='pastel-blue v651-meb-tool';meb.textContent='📘 MEB Kaynaklar';meb.onclick=()=>openMebResourcesV651();actions.prepend(meb);actions.prepend(pdf);
+  }
+  window.openCentralResourcesV651=function(){
+    view='resources-v651';const groups=Object.entries(state.materials||{}).filter(([,items])=>Array.isArray(items)&&items.length);let body='';
+    groups.forEach(([k,items])=>{const at=k.lastIndexOf('|'),c=k.slice(0,at),t=Number(k.slice(at+1)),title=topics[c]?.[t]?.[0]||('Konu '+(t+1));body+=`<section class="v651-resource-item"><h3>${esc(c)} · ${esc(title)}</h3>${items.map((x,j)=>`<button type="button" onclick='v622ViewSource(${JSON.stringify(c)},${t},${j})'>📄 ${esc(x.name||'Kaynak')}</button>`).join('')}</section>`});
+    app.innerHTML=`${nav()}<h1>📎 PDF / Fotoğraf</h1><section class="card"><p>Yeni bir PDF veya fotoğraf seç; ders ve konu önerisini kontrol ettikten sonra kaydet.</p><div class="v651-central-actions"><button class="primary" onclick="v622ChooseFiles()">📎 Dosya seç ve yükle</button><button onclick="home()">← Ana sayfa</button></div></section><div class="v651-resource-grid">${body||'<section class="card">Henüz yüklenmiş kişisel kaynak yok.</section>'}</div>`;window.scrollTo(0,0);
+  };
+  window.openMebResourcesV651=function(){
+    view='meb-resources-v651';const cards=(courses||[]).filter(c=>c[0]!==SECOND).map(c=>`<section class="v651-resource-item"><h3>${c[1]} ${esc(typeof displayName==='function'?displayName(c[0]):c[0])}</h3><p>${(official[c[0]]||[]).map(esc).join(' • ')||'Konuya özel sayfalar ders anlatımının içinde bulunur.'}</p><a href="https://tymm.meb.gov.tr/ogretim-programlari/temel-egitim" target="_blank" rel="noopener">Resmî MEB programını aç</a></section>`).join('');
+    app.innerHTML=`${nav()}<h1>📘 MEB Kaynaklar</h1><section class="card"><p>Konuya ait kitap sayfaları ilgili konu anlatımında açılır. Aşağıdaki bağlantı resmî öğretim programına gider.</p><button onclick="home()">← Ana sayfa</button></section><div class="v651-resource-grid">${cards}</div>`;window.scrollTo(0,0);
+  };
+
+  window.setUnlockAllV651=function(value){state.unlockAllV651=!!value;persist();parentView()};
+  function decorateParentV651(){
+    if(document.getElementById('v651-parent-lock'))return;const anchor=document.querySelector('.teacher-parent-card')||document.querySelector('#app .card');if(!anchor)return;
+    const box=document.createElement('section');box.id='v651-parent-lock';box.className='card v651-parent-lock';box.innerHTML=`<div class="v651-lock-row"><div><h2>🔐 Konu kilitleri</h2><p>${state.unlockAllV651?'Tüm konular geçici olarak açık. Kapatıldığında tamamlanan ve daha önce başlanmış konular açık kalır; diğerleri normal sıraya döner.':'Normal sıra etkin. Tamamlanan ve başlanmış konular korunur.'}</p></div><button class="${state.unlockAllV651?'pastel-peach':'primary'}" onclick="setUnlockAllV651(${state.unlockAllV651?'false':'true'})">${state.unlockAllV651?'Kapa':'Aç'}</button></div>`;anchor.after(box);
+  }
+
+  window.__v651GlobalWrongSelected=false;
+  function decorateGlobalWrong(){
+    const top=document.querySelector('.duru-gtt-panel-top')||document.querySelector('#app .card');if(!top||document.getElementById('v651-global-wrong'))return;const count=wrongPool('').length,label=document.createElement('label');label.id='v651-global-wrong';label.className='v651-wrong-option';label.innerHTML=`<input type="checkbox" ${count?'':'disabled'} ${window.__v651GlobalWrongSelected?'checked':''}><span>🔴 Yanlış cevaplanan sorular <small>(${count} soru)</small></span>`;top.append(label);const input=label.querySelector('input');input.addEventListener('change',()=>{window.__v651GlobalWrongSelected=input.checked;if(input.checked){Object.keys(window.__teacherGTTSelection||{}).forEach(k=>window.__teacherGTTSelection[k]=false);globalGTTScreen()}})
+  }
+  const globalBeforeV651=window.globalGTTScreen;
+  window.globalGTTScreen=function(){const r=globalBeforeV651.apply(this,arguments);setTimeout(decorateGlobalWrong,0);decorateGlobalWrong();return r};
+  const globalStartBeforeV651=window.startGlobalGTTSelected;
+  window.startGlobalGTTSelected=function(){if(window.__v651GlobalWrongSelected)return startWrongGttV651('');return globalStartBeforeV651.apply(this,arguments)};
+  ['gttSetAllV644','gttSetCourseV644','gttSetTopicV644'].forEach(name=>{const old=window[name];if(typeof old!=='function')return;window[name]=function(){if(arguments[arguments.length-1]){window.__v651GlobalWrongSelected=false;const x=document.querySelector('#v651-global-wrong input');if(x)x.checked=false}return old.apply(this,arguments)}});
+
+  const homeBeforeV651=window.home;
+  window.home=home=function(){const r=homeBeforeV651.apply(this,arguments);setTimeout(decorateHomeV651,0);decorateHomeV651();return r};
+  const openBeforeV651=window.openCourse;
+  window.openCourse=openCourse=function(c){const r=openBeforeV651.apply(this,arguments);setTimeout(()=>decorateCourseV651(c),0);decorateCourseV651(c);return r};
+  const parentBeforeV651=window.parentView;
+  window.parentView=parentView=function(){const r=parentBeforeV651.apply(this,arguments);setTimeout(decorateParentV651,0);decorateParentV651();return r};
+
+  migrateLegacyWrongs();
+  if(view==='home')decorateHomeV651();else if(view==='course'&&course)decorateCourseV651(course);else if(view==='parent')decorateParentV651();else if(view==='gtt-general')decorateGlobalWrong();
+  window.__DURU_V651_TEST__={topicAccessible,remediation,candidatePool,extraQuestions,wrongPool,questionId,validQuestion,decorateCourseV651};
+})();
+</script>
+<!-- /V6.51 -->
+
+<script>
+if('serviceWorker' in navigator&&location.protocol==='https:'){
+  let reloading=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(reloading||sessionStorage.getItem('duru-v651-controller-reload'))return;reloading=true;sessionStorage.setItem('duru-v651-controller-reload','1');if(typeof view==='undefined'||view!=='test')location.reload()});
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{}));
+}
+</script>
