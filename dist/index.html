@@ -6304,6 +6304,7 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
     return Number.isInteger(i)&&i>=0?{learn,i}:null;
   }
   function makeTestButton(c,i,kind,label){const b=document.createElement('button');b.type='button';b.textContent=label;b.dataset.v651Kind=kind;b.addEventListener('click',()=>startQuiz(c,i,kind));return b}
+  function mathTopicLabel(title){return String(title||'').replace(/^\s*MAT(?:\.\d+){3}\s*[·:–—-]?\s*/i,'').trim()}
   function removeDuplicateTopicStatuses(card){
     card.querySelectorAll('.duru-v645-status,.v651-topic-status').forEach(x=>x.remove());
     const statusPattern=/(?:✅\s*(?:Konu testi )?tamamlandı|🔒\s*(?:Kilitli|Önceki konunun GTT sonucu bekleniyor)|📖\s*(?:Öğrenmeye|Çalışmaya) hazır|🧠\s*GTT Bekleniyor)/i;
@@ -6317,6 +6318,7 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
     const selector='.course-topic,.fen-item,.rel-item,.teacher-lang-topic,.ger-topic,.eng-card';
     document.querySelectorAll(selector).forEach(card=>{
       const info=topicCardInfo(card,c);if(!info)return;const {learn,i}=info,host=learn.closest('.course-actions,.fen-actions,.rel-actions,.teacher-lang-actions,.ger-actions,.eng-actions')||learn.parentElement||card;
+      if(c==='Matematik'){const heading=card.querySelector('h2,h3,.fen-details strong');if(heading)heading.textContent=mathTopicLabel(heading.textContent)}
       let normal=[...card.querySelectorAll('button')].find(b=>/Konu testi/i.test(b.textContent||''));if(!normal){normal=makeTestButton(c,i,'normal','📝 Konu testi');host.appendChild(normal)}
       let extra=[...card.querySelectorAll('button')].find(b=>/Ekstra test/i.test(b.textContent||''));if(!extra){extra=makeTestButton(c,i,'extra','✨ Ekstra test');host.appendChild(extra)}
       const locked=!topicAccessible(c,i),extraReady=topicAccessible(c,i)&&done(c,i),required=remediation(c,i);
@@ -6337,7 +6339,7 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
     const list=topics[course]||[];let box=document.querySelector('.course-general');
     if(!box){box=document.createElement('section');box.className='course-extra course-general';app.appendChild(box)}
     const selected=list.filter((_,i)=>done(course,i)).length;
-    box.innerHTML=`<div class="course-general-head"><h2>🧠 Genel tekrar testi · İsteğe bağlı</h2><span class="course-general-count">${selected} konu</span></div><p class="fen-note">Dilediğin konuları seç. Her seçili konu için 10 soru hazırlanır. GTT, diğer konuların açılmasını engellemez.</p><div class="v651-math-gtt-list" style="max-height:280px;overflow:auto">${list.map((x,i)=>`<label style="display:block;padding:6px"><input class="topicselect" type="checkbox" value="${i}" ${done(course,i)?'checked':''} onchange="updateGeneralCount()"> ${esc(x[0])}</label>`).join('')}</div><div class="general-selection-summary" id="general-selection-summary">${selected} konu seçili</div><button class="primary general-start" onclick="startGeneral()" ${selected?'':'disabled'}>🧠 Seçili konulardan GTT başlat</button>`;
+    box.innerHTML=`<div class="course-general-head"><h2>🧠 Genel tekrar testi · İsteğe bağlı</h2><span class="course-general-count">${selected} konu</span></div><p class="fen-note">Dilediğin konuları seç. Her seçili konu için 10 soru hazırlanır. GTT, diğer konuların açılmasını engellemez.</p><div class="v651-math-gtt-list" style="max-height:280px;overflow:auto">${list.map((x,i)=>`<label style="display:block;padding:6px"><input class="topicselect" type="checkbox" value="${i}" ${done(course,i)?'checked':''} onchange="updateGeneralCount()"> ${esc(mathTopicLabel(x[0]))}</label>`).join('')}</div><div class="general-selection-summary" id="general-selection-summary">${selected} konu seçili</div><button class="primary general-start" onclick="startGeneral()" ${selected?'':'disabled'}>🧠 Seçili konulardan GTT başlat</button>`;
     updateGeneralCount();
   }
   function addSubjectWrongOptions(c){

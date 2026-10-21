@@ -1,4 +1,4 @@
-const CACHE='duru-ogretmenim-v6511-single-status-math-gtt';
+const CACHE='duru-ogretmenim-v6512-clean-math-titles';
 const APP_SHELL=['./','./index.html','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
