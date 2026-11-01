@@ -6407,3 +6407,78 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
   window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{}));
 }
 </script>
+
+<!-- EKÇ denetimi: rozetin tarif edilen tür, gövde ve uzuvlarına göre çizimi -->
+<script>
+window.badgeMakeSVG=function drawBadge(d){
+ d=d||{};const p=String(d.promptText||'').toLocaleLowerCase('tr-TR');
+ const valid=(x,f)=>/^#[\da-f]{6}$/i.test(x)?x:f;
+ const C=valid(d.primary,'#79aef7'),E=valid(d.edge,'#ffd77b'),D='#233b58';
+ const esc=v=>String(v||'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
+ const tag=(name,attrs)=>`<${name} ${attrs}/>`;
+ const ellipse=(x,y,rx,ry,color=C)=>tag('ellipse',`cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${color}" stroke="${D}" stroke-width="5"`);
+ const path=(shape,color=C,w=5)=>tag('path',`d="${shape}" fill="${color}" stroke="${D}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`);
+ let species=d.character||'funny';
+ const speciesHints=[['fish',/balık/],['cat',/kedi/],['dog',/köpek/],['rabbit',/tavşan/],['bird',/kuş|papağan/],['robot',/robot/],['panda',/panda/],['monster',/canavar|ejderha/],['octopus',/ahtapot/],['butterfly',/kelebek/],['turtle',/kaplumbağa/]];
+ for(const [name,re]of speciesHints)if(re.test(p)){species=name;break}
+ const big=!!d.bigEyes||/kocaman göz|büyük göz|iri göz/.test(p);
+ const surprise=d.emotion==='surprised'||/şaşkın/.test(p),angry=d.emotion==='angry'||/kızgın/.test(p),sleepy=d.emotion==='sleepy'||/uykulu/.test(p);
+ const longTail=/uzun kuyruk/.test(p),cheeks=!!d.cheeks||/yanak/.test(p);
+ let behind='',body='',front='',eyex=120,eyey=98,gap=35,fish=false;
+ if(/pelerin/.test(p))behind+=path('M83 112 Q40 145 55 205 Q125 224 190 205 Q199 145 155 112 Z','#e978ad');
+ switch(species){
+ case 'fish':
+  behind+=path('M168 126 Q198 97 223 88 L215 130 L223 174 Q196 160 168 137 Z',C)+path('M96 97 L123 66 L153 99 Z',E);
+  body+=ellipse(114,130,73,48)+path('M103 158 Q122 187 152 165 Z',E);fish=true;eyex=95;eyey=118;gap=0;
+  front+=path('M154 136 Q164 131 176 139','none',3);break;
+ case 'octopus':
+  for(let i=0;i<6;i++){const x=73+19*i;behind+=path(`M${x} 145 Q${x-28} 178 ${x-8} 207 Q${x+8} 225 ${x+22} 203`,'none',12)}
+  body+=ellipse(120,118,65,66)+ellipse(120,157,60,36);eyey=99;break;
+ case 'butterfly':
+  behind+=ellipse(68,106,46,51,E)+ellipse(171,106,46,51,E)+ellipse(77,162,38,33)+ellipse(163,162,38,33);
+  body+=ellipse(120,133,25,70);front+=path('M108 68 Q89 37 76 45 M132 68 Q152 37 165 45','none',4);gap=16;eyey=100;break;
+ case 'turtle':
+  behind+=path('M172 157 L207 173 L176 183 Z');body+=ellipse(114,152,77,54,E)+ellipse(165,121,38,33)+ellipse(74,193,22,13)+ellipse(148,198,22,13);
+  front+=path('M63 155 Q109 105 165 150 Q142 187 71 177 Z')+path('M107 113 L123 145 L105 177 M75 153 L106 176 L154 154','none',3);
+  eyex=167;eyey=114;gap=12;break;
+ case 'robot':
+  behind+=path('M120 60 L120 31','none',5)+ellipse(120,25,8,8,'#ff7ba2');
+  body+=tag('rect',`x="74" y="132" width="92" height="65" rx="16" fill="${C}" stroke="${D}" stroke-width="5"`);
+  body+=tag('rect',`x="60" y="61" width="120" height="87" rx="22" fill="${C}" stroke="${D}" stroke-width="5"`);
+  body+=tag('rect',`x="76" y="193" width="29" height="29" rx="7" fill="${C}" stroke="${D}" stroke-width="5"`);
+  body+=tag('rect',`x="136" y="193" width="29" height="29" rx="7" fill="${C}" stroke="${D}" stroke-width="5"`);
+  front+=tag('rect',`x="94" y="162" width="52" height="19" rx="8" fill="${E}" stroke="${D}" stroke-width="3"`);eyey=100;break;
+ default:
+  if(species==='cat')behind+=path(longTail?'M164 160 C236 191 212 74 192 73':'M164 163 Q208 175 193 130','none',14);
+  if(species==='dog')behind+=path(longTail?'M166 163 Q238 139 206 81':'M166 163 Q208 140 200 118','none',13);
+  if(species==='bird')behind+=path('M165 162 L207 199 L178 182 L190 195 Z',E);
+  if(species==='rabbit')behind+=ellipse(175,168,16,15,'#fff');
+  if(species==='monster')behind+=path('M166 155 Q215 160 207 201 L184 186 Z');
+  body+=ellipse(120,155,60,58,species==='panda'?'#ffffff':C);
+  body+=ellipse(81,198,19,24,species==='panda'?D:C)+ellipse(159,198,19,24,species==='panda'?D:C);
+  if(species==='cat')behind+=path('M72 90 L68 37 L109 67 Z')+path('M168 90 L172 37 L131 67 Z');
+  if(species==='rabbit')behind+=ellipse(90,51,17,43)+ellipse(150,51,17,43)+ellipse(90,51,7,30,'#ffc3da')+ellipse(150,51,7,30,'#ffc3da');
+  if(species==='dog')behind+=ellipse(71,97,20,38,E)+ellipse(169,97,20,38,E);
+  if(species==='panda')behind+=ellipse(81,65,24,24,D)+ellipse(159,65,24,24,D);
+  if(species==='monster')behind+=path('M84 70 L69 34 L112 63 Z',E)+path('M156 70 L171 34 L128 63 Z',E);
+  if(species==='bird')behind+=path('M75 140 Q30 140 56 187 L100 170 Z',E)+path('M164 140 Q210 140 186 187 L142 170 Z',E);
+  body+=ellipse(120,95,species==='dog'?54:49,species==='panda'?50:45,species==='panda'?'#fff':C);
+  if(species==='cat')front+=path('M78 117 L49 109 M78 124 L49 126 M162 117 L190 109 M162 124 L191 126','none',3);
+  if(species==='bird')front+=path('M118 112 L150 128 L119 141 Z','#ffb347');
+  break;
+ }
+ if(/kanatlı|kanatları/.test(p)&&!['bird','fish','butterfly'].includes(species))front+=path('M77 145 Q20 101 26 172 L84 168 Z',E)+path('M163 145 Q220 101 214 172 L156 168 Z',E);
+ const eye=(x)=>sleepy?path(`M${x-13} ${eyey} Q${x} ${eyey+8} ${x+13} ${eyey}`,'none',4):ellipse(x,eyey,big?18:13,big?21:16,'#fff')+ellipse(x+3,eyey+3,6,7,D)+tag('circle',`cx="${x+5}" cy="${eyey-2}" r="2.5" fill="#fff"`);
+ front+=gap===0?eye(eyex):eye(eyex-gap/2)+eye(eyex+gap/2);
+ const mx=species==='fish'?103:eyex,my=species==='fish'?149:eyey+30;
+ front+=surprise?ellipse(mx,my,9,13,'#bd466c'):angry?path(`M${mx-12} ${my+6} Q${mx} ${my-8} ${mx+12} ${my+6}`,'none',4):path(`M${mx-14} ${my-3} Q${mx} ${my+16} ${mx+14} ${my-3}`,'none',4);
+ if(cheeks)front+=tag('circle',`cx="${eyex-33}" cy="${eyey+21}" r="10" fill="#ff9fc0" opacity=".8"`)+tag('circle',`cx="${eyex+33}" cy="${eyey+21}" r="10" fill="#ff9fc0" opacity=".8"`);
+ if(/benek/.test(p)||d.spots)front+=tag('circle',`cx="86" cy="170" r="6" fill="${E}"`)+tag('circle',`cx="142" cy="177" r="5" fill="${E}"`);
+ if(/gözlük/.test(p)&&gap!==0)front+=tag('circle',`cx="${eyex-gap/2}" cy="${eyey}" r="24" stroke="${D}" stroke-width="3" fill="none"`)+tag('circle',`cx="${eyex+gap/2}" cy="${eyey}" r="24" stroke="${D}" stroke-width="3" fill="none"`);
+ if(/şapka/.test(p))front+=path('M86 57 L98 19 H143 L155 57 Z',E)+path('M76 57 H165','none',7);
+ if(/papyon|fiyonk/.test(p))front+=path('M118 150 L89 135 L89 165 Z M122 150 L151 135 L151 165 Z','#ff98bc');
+ if(/üç göz|3 göz/.test(p))front+=eye(eyex).replaceAll(`cy="${eyey}"`,`cy="${eyey-27}"`);
+ const title=esc(d.title||'Özel rozet'),desc=esc(p.slice(0,300));
+ return `<svg class="bd-svg" viewBox="0 0 240 240" role="img" aria-label="${title}" xmlns="http://www.w3.org/2000/svg"><ellipse cx="120" cy="224" rx="75" ry="8" fill="${D}" opacity=".13"/><g>${behind}${body}${front}</g><title>${title}</title><desc>${desc}</desc></svg>`;
+};
+</script>
