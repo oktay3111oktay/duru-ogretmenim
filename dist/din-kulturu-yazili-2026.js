@@ -1,146 +1,185 @@
-/* Duru'nun Akıllı Öğretmeni - 5. sınıf Din Kültürü, 1. ünite
-   EBA (15 açık uçlu ana soru) ve MEBİ (7 yazılı hazırlığı sorusu) kazanımlarını
-   temel alan YENİ, özgün 32 açık uçlu soru. Mevcut sınav/puan/rozet/GTT koduna dokunmaz.
-   Resmî materyaller kendi MEB/EBA adreslerinde açılır; içerikler bu depoya kopyalanmaz. */
+/* Duru'nun Akıllı Öğretmeni · 5. sınıf Din Kültürü
+   511 EBA ve 511 MEBİ belgeleri: konu içeriği, dört seçenekli test ve GTT ek paketi. */
 (function () {
   'use strict';
+
   const COURSE = 'Din Kültürü';
-  const SOURCE_URLS = {
-    EBA: 'https://eba-public-small.eba.gov.tr/prod/media/landing/19196668-8f9a-4ac6-8ca3-4d510b89c52a.pdf',
-    MEBI: 'https://mebi.eba.gov.tr/pdf-file?url=upload%2Fmidterm-question%2Fpdf%2Fad31b62b55.pdf'
+  const SOURCES = {
+    EBA: { file: './assets/din-511-eba.pdf', label: '511 EBA · Açık Uçlu Çalışma Soruları', pages: '3–11' },
+    MEBI: { file: './assets/din-511-mebi.pdf', label: '511 MEBİ · Yazılıya Hazırlanıyorum', pages: '2–4' }
   };
-  const TOPIC_OUTCOMES = ['DKAB.5.1.1', 'DKAB.5.1.2', 'DKAB.5.1.3', 'DKAB.5.1.4'];
-  const TOPIC_NAMES = ['Evrendeki Mükemmel Düzen', 'Allah’ın Varlığı ve Birliği', 'Allah’ın Güzel İsimleri', 'İhlas Suresi'];
-  // Her satır: [özgün açık uçlu soru, örnek yanıt, ilgili MEB kaynağı, PDF sayfası].
-  const BANK = [
+  const TOPICS = ['Evrendeki Mükemmel Düzen', 'Allah’ın Varlığı ve Birliği', 'Allah’ın Güzel İsimleri', 'İhlas Suresi'];
+  const esc = value => String(value ?? '').replace(/[&<>'"]/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[char]));
+  const safePage = value => Math.max(1, Number(value) || 1);
+
+  // PDF’deki açık uçlu çalışmalar, 10 yaş düzeyinde tek doğru cevabı olan dört seçenekli sorulara dönüştürüldü.
+  // Doğrudan belgeye dayanmayan deney/ödev sorusu eklenmedi.
+  const QUESTION_BANK = [
     [
-      ['Bir gölün suyu sıcak günlerde azalıyor, yağışlı günlerde yeniden artıyor. Gölün su seviyesini etkileyen iki doğa olayını ve aralarındaki ilişkiyi açıklayınız.', 'Güneşin etkisiyle buharlaşma olur. Su buharı yoğunlaşıp bulut oluşturur; yağışla su yeniden göle ve çevreye ulaşır. Böylece su döngüsü devam eder.', 'EBA', 3],
-      ['Arıların azaldığı bir elma bahçesinde meyve sayısı neden değişebilir? Canlılar arasındaki ilişkiyi açıklayınız.', 'Arılar çiçeklerin tozlaşmasına yardımcı olur. Arıların azalması tozlaşmayı ve meyve oluşumunu azaltabilir. Canlılar birbiriyle ilişki içindedir.', 'EBA', 3],
-      ['Sonbaharda toprağa düşen yaprakların ilkbahardaki bitki gelişimine nasıl katkı sağlayabileceğini üç aşamada açıklayınız.', 'Yapraklar yere düşer, ayrıştırıcı canlılar onları parçalar, oluşan besin maddeleri toprağa karışır ve bitkiler bunlardan yararlanır.', 'EBA', 5],
-      ['Dünya atmosferinin canlıların yaşaması bakımından önemli olan iki işlevini yazınız.', 'Atmosfer, Güneş’ten gelen bazı zararlı ışınlara karşı koruma sağlar ve küçük gök cisimlerinin önemli bir kısmının yeryüzüne ulaşmasını önler.', 'EBA', 3],
-      ['Ay’ın hilalden dolunaya kadar farklı şekillerde görülmesi ve kuşların mevsimsel göçleri hangi ortak özelliği gösterir?', 'Her iki olay da belirli zamanlarda tekrarlanan örüntüler içerir. Bu gözlemler doğadaki düzenli işleyiş üzerinde düşünmemizi sağlar.', 'EBA', 6],
-      ['Bir kekte malzemelerin belirli miktarlarda kullanılmasıyla doğadaki denge arasında nasıl bir benzerlik kurulabilir?', 'Tarifteki malzemelerin ölçüsü sonucu etkiler. Doğada da pek çok koşulun birbiriyle uyumlu olması canlıların yaşamını etkiler. İkisinde de ölçü ve denge önemlidir.', 'EBA', 3],
-      ['Aynı bahçede farklı bitkilerin su, toprak ve güneş ışığından yararlanmasını evrendeki düzen açısından yorumlayınız.', 'Bitkiler gelişmek için çevre koşullarından yararlanır ve birbirinden farklı özellikler gösterir. Bu durum doğadaki çeşitliliği ve karşılıklı ilişkileri fark etmemizi sağlar.', 'MEBI', 1],
-      ['Su döngüsünün buharlaşma, yoğunlaşma, yağış ve yüzeysel akış aşamalarını sıralayıp her aşamayı birer sözcük grubuyla açıklayınız.', 'Buharlaşma: suyun buhara dönüşmesi; yoğunlaşma: bulutların oluşması; yağış: suyun yeryüzüne dönmesi; yüzeysel akış: suyun akarsu, göl ve denizlere ulaşması.', 'EBA', 4]
+      q('EBA’da kek tarifi ile atmosfer örneği birlikte hangi düşünceyi anlatır?', 'Ölçü ve dengenin önemli olduğunu', ['Ölçü ve dengenin önemli olduğunu','Her şeyin rastgele oluştuğunu','Ölçünün gereksiz olduğunu','Sadece kek yapmayı'], 'EBA', 3, 'Tarifteki ölçüler ve atmosferdeki hassas dengeyi birlikte düşün.'),
+      q('Elma bahçesindeki arılar, çiçeklerin meyveye dönüşmesine nasıl yardım eder?', 'Tozlaşmaya yardım ederek', ['Tozlaşmaya yardım ederek','Yaprakları boyayarak','Gölü kurutarak','Ağaçları keserek'], 'EBA', 3, 'Metinde arıların çiçeklere konduğu anlatılıyor.'),
+      q('Sıcak bir günde göl suyunun azalmasının temel nedeni hangisidir?', 'Suyun buharlaşması', ['Suyun buharlaşması','Suyun donması','Arıların uçması','Yaprakların düşmesi'], 'EBA', 3, 'Sıcaklık arttığında suyun bir kısmı buhar hâline geçer.'),
+      q('Su döngüsünde su buharının bulutlara dönüşmesine ne denir?', 'Yoğunlaşma', ['Yoğunlaşma','Buharlaşma','Tozlaşma','Göç'], 'EBA', 4, 'Buharlaşmadan sonra su buharı soğuyup küçük damlacıklara dönüşür.'),
+      q('Kuşların mevsimsel göçü ve Ay’ın evreleri hangi ortak özelliğe sahiptir?', 'Düzenli aralıklarla tekrar etmeleri', ['Düzenli aralıklarla tekrar etmeleri','Sadece gündüz görülmeleri','İnsanlar tarafından yapılmaları','Hiç değişmemeleri'], 'EBA', 6, 'İki olayın da belli bir düzeni vardır.'),
+      q('Yere düşen yaprakların zamanla toprağa karışması bitkilere nasıl yarar sağlar?', 'Toprağa besin maddesi kazandırır', ['Toprağa besin maddesi kazandırır','Güneşi söndürür','Yağmuru durdurur','Ay’ı büyütür'], 'EBA', 5, 'Yapraklar ayrışınca toprak bitkiler için daha zengin hâle gelir.')
     ],
     [
-      ['Bir saatin çarklarının uyum içinde çalışmasıyla insan vücudundaki organların birlikte çalışmasını karşılaştırınız. Bu benzetmenin din dersindeki mesajını yazınız.', 'Saatin parçaları ve vücudun organları belirli görevler üstlenerek birlikte çalışır. Din dersinde bu uyum, Allah’ın yarattığı düzen üzerinde düşünmeyle ilişkilendirilir.', 'EBA', 6],
-      ['Bir tohumun filizlenmesinde gözlemlenen koşulları ve bu gözlemden Allah’ın varlığı ile ilgili yapılan inanç temelli çıkarımı ayrı ayrı yazınız.', 'Gözlem: Tohumun büyümesinde su, hava, uygun sıcaklık ve ışık gibi koşullar etkilidir. İnanç temelli çıkarım: Bu düzenin Allah’ın yaratmasıyla ilişkili olduğu düşünülür.', 'MEBI', 2],
-      ['Gün batımı, kuşların hareketleri ve meyve ağaçlarının gelişimini inceleyen öğrenciler hangi ortak düşünceye ulaşabilir? Bir cümleyle açıklayınız.', 'Bu olaylar doğadaki uyum ve düzeni fark etmelerini sağlar; İslam inancında bu düzen Allah’ın yaratmasındaki ölçüyle ilişkilendirilir.', 'MEBI', 1],
-      ['Kalbin kanı pompalaması ve akciğerin oksijen alışverişi yapması neden birbirinden bağımsız düşünülemez?', 'Kalp ve akciğer farklı görevler üstlense de vücudun yaşaması için birlikte çalışır. Organlar arasındaki bu uyum, insan vücudundaki düzenin bir örneğidir.', 'MEBI', 1],
-      ['Tevhit inancını tanımlayınız ve bu inancın insanın ibadetlerine nasıl yansıyacağına bir örnek veriniz.', 'Tevhit, Allah’ın bir ve tek olduğuna inanmak demektir. Bu inanç, ibadetleri yalnızca Allah’a yöneltmekte görülür.', 'EBA', 6],
-      ['İnsanların doğadaki olayları gözlemlemesi ile Allah’ın birliği hakkında düşünmesi arasında nasıl bir bağ kurulabilir?', 'İnsan gözlem yaparak doğadaki düzeni fark eder. İslam inancına göre bu düzen, insanı Allah’ın varlığı ve birliği hakkında düşünmeye yöneltebilir.', 'EBA', 6],
-      ['Bir öğrenci doğadaki her olayın birbirinden tamamen bağımsız olduğunu söylüyor. Ona su, toprak ve bitki üzerinden bir karşı örnek veriniz.', 'Bitki büyümek için topraktaki maddelere ve suya ihtiyaç duyar; su döngüsü de bitkilerin yaşamını etkiler. Böylece doğadaki olayların ilişkili olduğu görülür.', 'EBA', 4],
-      ['İhlas suresini henüz okumamış bir arkadaşınıza “Allah’ın birliği” ifadesinin ne anlama geldiğini günlük dille açıklayınız.', 'İslam inancına göre Allah tektir, ortağı ve benzeri yoktur. Yaratma ve ilahlık bakımından O’na eş bir varlık kabul edilmez.', 'EBA', 6]
+      q('Saatin parçalarının ve vücuttaki organların uyumlu çalışması bize neyi fark ettirir?', 'Bir düzen içinde birlikte çalıştıklarını', ['Bir düzen içinde birlikte çalıştıklarını','Birbirlerine hiç ihtiyaç duymadıklarını','Rastgele hareket ettiklerini','Sadece saatlerin önemli olduğunu'], 'EBA', 6, 'Saatteki parçalar ve organlar farklı görevlerle bir bütünü oluşturur.'),
+      q('Bir çiçeğin büyümesinde su, güneş ışığı ve hava gibi etkenleri görmek neyi gösterir?', 'Canlıların belirli koşullara ihtiyaç duyduğunu', ['Canlıların belirli koşullara ihtiyaç duyduğunu','Çiçeklerin hiç büyümediğini','Suyun gereksiz olduğunu','Güneşin yalnız geceleri çıktığını'], 'MEBI', 2, 'MEBİ metnindeki çiçeğin büyüme aşamalarını hatırla.'),
+      q('Doğadaki düzen üzerinde düşünen bir öğrenci hangi inanç konusu hakkında fikir yürütebilir?', 'Allah’ın varlığı ve birliği hakkında', ['Allah’ın varlığı ve birliği hakkında','Sadece oyun kuralları hakkında','Sınıf sıraları hakkında','Yemek tarifleri hakkında'], 'MEBI', 2, 'Kaynakta düzenin Allah’ın varlığı ve birliğiyle ilişkilendirildiği anlatılır.'),
+      q('Tevhit inancı ne demektir?', 'Allah’ın bir ve tek olduğuna inanmak', ['Allah’ın bir ve tek olduğuna inanmak','Birden çok yaratıcıya inanmak','Hiçbir şeyin düzeni olmadığını düşünmek','Sadece gökyüzünü incelemek'], 'EBA', 6, 'İhlas suresinin ana mesajını da düşün.'),
+      q('Kalp ile akciğerin birlikte çalışması hangi örneğe uygundur?', 'Vücuttaki uyum ve düzene', ['Vücuttaki uyum ve düzene','Rastgeleliğe','İsrafa','Yalnızlığa'], 'MEBI', 1, 'İki organ farklı görev yapar; ikisi de yaşamak için gereklidir.'),
+      q('Bir tohumun filizlenmesini dikkatle gözlemlemek öğrenciye ne kazandırabilir?', 'Yaratılış ve düzen üzerinde düşünme', ['Yaratılış ve düzen üzerinde düşünme','Doğaya zarar verme isteği','Sorumluluktan kaçma','Bilgiye ilgisizlik'], 'MEBI', 2, 'Kaynakta çiçeğin büyüme aşamaları gözleniyor.')
     ],
     [
-      ['Şiddetli yağmurun yağmasındaki güç ile yağmurun canlılara fayda sağlamasını Allah’ın hangi iki güzel ismiyle ilişkilendirirsiniz? Gerekçenizi yazınız.', 'Kadir, Allah’ın her şeye güç yetirmesini; Rahman, bütün varlıklara merhamet etmesini anlatır. Yağmur örneğinde güç ve merhamet birlikte düşünülebilir.', 'EBA', 7],
-      ['Bir çocuk kimsenin duymadığı bir dua ediyor. Bu örnek Allah’ın hangi ismiyle ilişkilendirilir? Anlamını açıklayınız.', 'Semi: Allah’ın her şeyi işitmesidir. İnsanlar duymasa da Allah’ın duaları işittiğine inanılır.', 'EBA', 8],
-      ['Bir kişinin kimseye açıklamadığı düşünceleri bilmek ile onun davranışlarını görmek arasında hangi iki isim bakımından fark vardır?', 'Âlim, Allah’ın her şeyi bilmesi; Basir, her şeyi görmesi anlamına gelir. İlki bilgiye, ikincisi görmeye vurgu yapar.', 'EBA', 9],
-      ['Besmelede merhameti ifade eden iki güzel ismi yazınız. Bu isimlerin davranışlarımıza nasıl örnek olabileceğini belirtiniz.', 'Rahman ve Rahîm. Bu isimlerin anlamını düşünmek, ihtiyaç sahibi insanlara ve canlılara şefkatle yaklaşmaya örnek olabilir.', 'EBA', 7],
-      ['Bir kişi “Allah her şeyi bilir ama her şeye gücü yetmez.” diyor. Bu ifadeyi hangi iki isim üzerinden değerlendirirsiniz?', 'Âlim, Allah’ın her şeyi bildiğini; Kadir, her şeye gücünün yettiğini ifade eder. İslam inancına göre söylenen ikinci kısım doğru değildir.', 'MEBI', 2],
-      ['“Yaratan bilmez mi?” ve “Allah onların yaptıklarını görür.” anlamındaki ifadeler hangi güzel isimleri hatırlatır?', 'Birinci ifade Âlim ismini, ikinci ifade Basir ismini hatırlatır. Âlim bilmek, Basir görmek anlamıyla ilişkilidir.', 'MEBI', 3],
-      ['Bir arkadaşınız zor bir gün geçiriyor. Allah’ın merhametini ve her şeyi bilmesini anlatan iki ismi kullanarak kısa bir dua örneği yazınız.', 'Örnek: “Ey Rahman olan Allah’ım, arkadaşıma merhametinle yardım et. Ey Âlim olan Allah’ım, onun sıkıntısını en iyi Sen bilirsin.”', 'EBA', 8],
-      ['Allah’ın güzel isimlerini araştıran bir öğrenci güvenilir bilgiye nasıl ulaşabilir? İki farklı kaynak veya kontrol yolu öneriniz.', 'Kur’an-ı Kerim’in ilgili ayetlerinden ve ders kitabı gibi güvenilir dinî kaynaklardan yararlanabilir; bulduğu anlamları karşılaştırıp doğrulayabilir.', 'MEBI', 2]
+      q('Allah’ın her şeye güç yetirmesini anlatan güzel isim hangisidir?', 'Kadir', ['Kadir','Semi','Basir','Âlim'], 'EBA', 7, 'Kaynakta yağmurun güçlü biçimde yağması örneği veriliyor.'),
+      q('İnsanların duymadığı bir duayı da Allah’ın işitmesi hangi isimle anlatılır?', 'Semi', ['Semi','Kadir','Basir','Rahim'], 'EBA', 8, 'Semi, işitmekle ilişkilidir.'),
+      q('Allah’ın her şeyi bilmesini anlatan güzel isim hangisidir?', 'Âlim', ['Âlim','Basir','Rahman','Kadir'], 'EBA', 9, 'Bilmek anlamını taşıyan ismi seç.'),
+      q('Allah’ın her şeyi görmesini anlatan güzel isim hangisidir?', 'Basir', ['Basir','Semi','Rahim','Kadir'], 'MEBI', 3, 'MEBİ’de “yaptıklarını görür” ifadesi geçiyor.'),
+      q('Allah’ın bütün varlıklara merhametini anlatan isim hangisidir?', 'Rahman', ['Rahman','Kadir','Âlim','Basir'], 'EBA', 7, 'Yağmurun canlılara nimet ulaştırması örneğini düşün.'),
+      q('Esmaül Hüsna ifadesi ne anlama gelir?', 'Allah’ın güzel isimleri', ['Allah’ın güzel isimleri','Bir dağın adı','Sadece bir ibadet saati','Bir oyun türü'], 'MEBI', 2, 'MEBİ belgesindeki esmayihüsna sorusunu hatırla.')
     ],
     [
-      ['İhlas suresinin “De ki: O, Allah’tır, tektir.” anlamındaki ayeti hangi temel inancı anlatır? Açıklayınız.', 'Allah’ın bir ve tek olduğu, ortağının bulunmadığı tevhit inancını anlatır.', 'EBA', 9],
-      ['“Allah Samed’dir.” ifadesi ile insanların günlük hayatta birbirlerine ihtiyaç duyması arasında nasıl bir fark vardır?', 'İnsanlar birbirlerine ve birçok şeye ihtiyaç duyar. Samed, Allah’ın hiçbir şeye muhtaç olmadığı, bütün varlıkların O’na muhtaç olduğu anlamındadır.', 'EBA', 11],
-      ['İhlas suresinde geçen “Doğurmamış ve doğmamıştır.” ifadesinin Allah hakkında anlattığını kendi cümlelerinizle yazınız.', 'Allah insanlar gibi doğan veya çocuk sahibi olan bir varlık değildir. O, yaratılmışların özelliklerinden uzaktır.', 'MEBI', 3],
-      ['“O’nun hiçbir dengi yoktur.” ifadesi hangi yanlış düşünceyi reddeder? Bir örnek üzerinden açıklayınız.', 'Allah’a eş veya benzer bir varlık bulunduğu düşüncesini reddeder. İslam inancına göre hiçbir varlık Allah ile eş tutulamaz.', 'EBA', 10],
-      ['Sınava çalışan bir öğrenci, “Allah’a güvenmek için hiç çalışmama gerek yok.” diyor. İhlas suresinin mesajıyla birlikte bu düşünceyi değerlendiriniz.', 'Allah’a güvenmek, kişinin kendi sorumluluklarını bırakması demek değildir. Öğrenci çalışmalı, elinden geleni yaptıktan sonra Allah’a dua edip güvenmelidir.', 'EBA', 11],
-      ['İhlas suresinin dört ayetinin Türkçe anlamını birer kısa cümle halinde doğru sırayla özetleyiniz.', '1) Allah tektir. 2) Allah Samed’dir, hiçbir şeye muhtaç değildir. 3) Doğurmamış ve doğmamıştır. 4) O’nun hiçbir dengi yoktur.', 'EBA', 10],
-      ['“Yalnızca senden yardım dileriz.” ifadesi ile “Allah Samed’dir.” ifadesi aynı surede mi geçer? Doğru sureyi belirterek açıklayınız.', '“Allah Samed’dir.” ifadesi İhlas suresindedir. “Yalnızca senden yardım dileriz.” ifadesi Fatiha suresinde geçer.', 'EBA', 10],
-      ['İhlas suresinin vermek istediği mesajı tevhit, Samed ve benzersiz sözcüklerini kullanarak iki cümleyle özetleyiniz.', 'İhlas suresi tevhit inancını, yani Allah’ın bir ve tek olduğunu anlatır. Allah Samed’dir, hiçbir şeye muhtaç değildir ve benzersizdir.', 'MEBI', 4]
+      q('İhlas suresinin ilk ayetinin anlamı hangisidir?', 'De ki: O, Allah’tır, tektir.', ['De ki: O, Allah’tır, tektir.','Yalnızca sana kulluk ederiz.','Bizi doğru yola ilet.','O, Rahman ve Rahim’dir.'], 'EBA', 10, 'Kaynakta ayetlerin anlamları arasından İhlas suresine ait olanları seçme çalışması var.'),
+      q('“Allah Samed’dir.” ifadesi ne anlatır?', 'Allah’ın hiçbir şeye muhtaç olmadığını', ['Allah’ın hiçbir şeye muhtaç olmadığını','Allah’ın uyuduğunu','Allah’ın yalnızca insanları gördüğünü','Allah’ın bir yeri olmadığını'], 'EBA', 10, 'Samed için kaynakta parantez içinde açıklama veriliyor.'),
+      q('Aşağıdakilerden hangisi İhlas suresinde yer almaz?', 'Yalnızca sana kulluk ederiz.', ['Yalnızca sana kulluk ederiz.','O, Allah’tır, tektir.','O doğurmamış ve doğmamıştır.','O’nun hiçbir dengi yoktur.'], 'EBA', 10, 'Bu ifade Fatiha suresindedir.'),
+      q('İhlas suresindeki “Doğurmamış ve doğmamıştır.” ifadesi neyi anlatır?', 'Allah’ın yaratılmışlara benzemediğini', ['Allah’ın yaratılmışlara benzemediğini','Allah’ın çok yorulduğunu','İnsanların Allah’ı yarattığını','Her insanın aynı olduğunu'], 'MEBI', 3, 'İhlas suresi Allah’ın eşsiz olduğunu anlatır.'),
+      q('“O’nun hiçbir dengi yoktur.” sözü hangi düşünceyi vurgular?', 'Allah’ın benzerinin olmadığını', ['Allah’ın benzerinin olmadığını','Herkesin Allah’a eşit olduğunu','İnsanların hiç çalışmaması gerektiğini','Sadece gecenin önemli olduğunu'], 'EBA', 10, 'Denk, eş veya benzer demektir.'),
+      q('İhlas suresinin ana mesajı hangisidir?', 'Allah’ın bir, tek ve eşsiz olması', ['Allah’ın bir, tek ve eşsiz olması','Sadece yağmurun nasıl yağdığı','Ders çalışmadan başarılı olmak','Bütün hayvanların aynı olması'], 'MEBI', 4, 'MEBİ’de suredeki asıl mesajı özetleme isteniyor.')
     ]
   ];
-  const escHtml = v => String(v ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-  const norm = v => String(v || '').toLocaleLowerCase('tr-TR').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
-  const safeSource = kind => SOURCE_URLS[kind] || SOURCE_URLS.EBA;
-  const itemLinks = () => '<a href="' + SOURCE_URLS.EBA + '" target="_blank" rel="noopener noreferrer">📄 EBA · Açık uçlu çalışma soruları (24 sayfa)</a>' +
-    '<a href="' + SOURCE_URLS.MEBI + '" target="_blank" rel="noopener noreferrer">📄 MEBİ · Yazılıya hazırlanıyorum (7 sayfa)</a>';
-  function uniqueQuestions(index) {
-    const seen = new Set();
-    try {
-      if (typeof RELIGION_DATA !== 'undefined') (RELIGION_DATA[COURSE]?.[index]?.questions || []).forEach(q => seen.add(norm(q.prompt)));
-      if (typeof v622AllQuestions === 'function') (v622AllQuestions(COURSE, index) || []).forEach(q => seen.add(norm(q.prompt)));
-      if (window.__DURU_V649_TEST__?.exact) (window.__DURU_V649_TEST__.exact(COURSE,index)||[]).forEach(q => seen.add(norm(q.prompt)));
-    } catch (e) { console.warn('Din kaynak soruları: mevcut soruların bir kısmı karşılaştırılamadı.',e); }
-    return BANK[index].filter(row => { const id=norm(row[0]); if(seen.has(id))return false;seen.add(id);return true; });
+
+  const SOURCE_LESSONS = [
+    [
+      { source:'EBA', page:3, title:'Ölçü ve denge', body:'Kek tarifindeki ölçüler değişirse sonuç değişir. EBA belgesinde bu örnek; atmosferin canlı yaşamı için çok hassas bir denge içinde olmasıyla birlikte düşünülür. Çevremizdeki düzeni fark etmek, dikkatle gözlem yapmamıza yardım eder.' },
+      { source:'EBA', page:4, title:'Canlılar ve su döngüsü', body:'Tohum, toprak, su, güneş ışığı ve arılar birbirini etkiler. Su buharlaşır, bulutlarda yoğunlaşır ve yağışla yeniden yeryüzüne döner. Bu örnekler canlılar ile cansız varlıkların bir düzen içinde ilişkili olduğunu gösterir.' },
+      { source:'MEBI', page:1, title:'Doğadaki güzellik ve plan', body:'MEBİ belgesindeki öğrenciler gün batımını, sebze ve meyvelerin yetişmesini, kuşların uyumlu hareketlerini gözlemler. Bu örnekler doğadaki güzellik ve düzen üzerinde düşünmeye yardımcı olur.' }
+    ],
+    [
+      { source:'EBA', page:6, title:'Uyum üzerinde düşünmek', body:'Saatin parçaları birlikte çalışır; vücudumuzdaki organlar da farklı görevlerle uyum içindedir. Bu tür örnekler, Allah’ın varlığı ve birliği hakkında düşünmeye yardımcı olur. Tevhit, Allah’ın bir ve tek olduğuna inanmak demektir.' },
+      { source:'MEBI', page:2, title:'Çiçeğin büyümesinden öğrenmek', body:'Bir çiçeğin büyümesi için tohum, toprak, su, hava ve güneş ışığı gerekir. Bu aşamaları dikkatle gözlemlemek; doğadaki düzeni fark etmeye ve Allah’ın varlığı ile birliği üzerinde düşünmeye yardımcı olur.' }
+    ],
+    [
+      { source:'EBA', page:7, title:'Güzel isimleri örnekle öğrenelim', body:'Kadir, Allah’ın her şeye güç yetirmesini anlatır. Rahman, Allah’ın bütün varlıklara merhametini anlatır. Yağmurun hem güçlü biçimde yağması hem de canlılara nimet ulaştırması bu iki ismi birlikte düşünmeye örnektir.' },
+      { source:'MEBI', page:3, title:'Bilmek, işitmek ve görmek', body:'Âlim, Allah’ın her şeyi bilmesi; Semi, her şeyi işitmesi; Basir, her şeyi görmesi anlamında kullanılır. Bir ismi doğru anlamıyla eşleştirmek için soruda geçen ipucuna dikkat et: bilmek, işitmek ya da görmek.' }
+    ],
+    [
+      { source:'EBA', page:10, title:'İhlas suresinin ayetleri', body:'İhlas suresi; Allah’ın tek olduğunu, Samed olduğunu, doğurmadığını ve doğmadığını, hiçbir denginin bulunmadığını bildirir. Ayetleri sırayla öğrenirken her ayetin kısa anlamını da düşün.' },
+      { source:'MEBI', page:4, title:'Surenin ana mesajı', body:'İhlas suresi Allah’ın eşsiz olduğunu anlatır. Allah bir ve tektir; hiçbir şeye muhtaç değildir ve O’nun benzeri yoktur. Bu nedenle sure, Allah’ın varlığı ve birliği konusuyla da bağlantılıdır.' }
+    ]
+  ];
+
+  function q(prompt, answer, options, source, page, hint) {
+    return {
+      c: COURSE, prompt, answer, options, hint,
+      explain: `Doğru cevap: ${answer}. Bu bilgi ${SOURCES[source].label} belgesinin ${page}. sayfasındaki çalışma ile ilişkilidir.`,
+      sourceRef: { source, page }, din511Source: true
+    };
   }
-  let active = null;
-  function showPractice() {
-    if (!active) return;
-    const root = document.getElementById('app');
-    if (!root) return;
-    const {t, questions, index, answers} = active;
-    const isEnd = index >= questions.length;
-    const navBtns = '<button type="button" id="din-written-back">← Konulara dön</button>';
-    if (isEnd) {
-      root.innerHTML='<div class="rel-block"><h2>Yazılı çalışması tamamlandı</h2><p>' + questions.length + ' özgün açık uçlu soru gözden geçirildi. Bunlar otomatik puanlanan konu testlerinden bağımsızdır.</p><div class="rel-actions">' + navBtns + '<button type="button" class="primary" id="din-written-restart">Yeniden çalış</button></div></div>';
-      document.getElementById('din-written-restart').onclick=()=>{active.index=0;showPractice()};
-    } else {
-      const row=questions[index], answer=answers[index]||'', source=row[2], pg=row[3];
-      root.innerHTML='<div class="rel-block"><div class="rel-top"><button type="button" id="din-written-home">⌂</button><div><strong>Din · Yazılıya hazırlık</strong><div>'+escHtml(TOPIC_NAMES[t])+'</div></div><span>'+ (index+1) + '/' + questions.length + '</span></div>' +
-        '<section class="card"><p class="muted">'+TOPIC_OUTCOMES[t]+' · '+escHtml(source)+' kaynak kazanımı · PDF s. '+pg+'</p><h2>'+escHtml(row[0])+'</h2>' +
-        '<label for="din-written-answer">Cevabını kendi cümlelerinle yaz</label><textarea id="din-written-answer" rows="6" placeholder="Önce kendin düşün ve yaz...">'+escHtml(answer)+'</textarea>' +
-        '<div class="rel-actions"><button type="button" id="din-written-reveal">Örnek cevabı göster</button><button type="button" class="primary" id="din-written-next">Cevabımı kaydet ve devam et →</button></div><div id="din-written-sample" hidden class="card" style="background:#f5f8ff"><b>Örnek cevap (tek doğru anlatım olmak zorunda değildir)</b><p>'+escHtml(row[1])+'</p></div></section>' +
-        '<section class="card"><h3>Resmî çalışma belgeleri</h3><div class="rel-actions din-official-links">'+itemLinks()+'</div><p class="muted">Bu çalışma, resmî soruların birebir kopyası değildir. Kaynak kazanımlarına göre yeni hazırlanmıştır.</p></section>' +
-        '<div class="rel-actions">' + navBtns + '</div></div>';
-      document.getElementById('din-written-home').onclick=()=>window.home();
-      document.getElementById('din-written-reveal').onclick=()=>{document.getElementById('din-written-sample').hidden=false;};
-      document.getElementById('din-written-next').onclick=()=>{answers[index]=document.getElementById('din-written-answer').value;active.index++;showPractice();};
-    }
-    document.getElementById('din-written-back').onclick=()=>window.openCourse(COURSE);
-    window.scrollTo(0,0);
-  }
-  window.startDinWrittenPractice2026 = function (index) {
-    const t=Number(index);
-    if (!Number.isInteger(t)||t<0||t>=BANK.length)return;
-    if (typeof window.topicAccessibleV651 === 'function' && !window.topicAccessibleV651(COURSE,t)) {
-      alert('Önceki konuyu tamamlayınca bu yazılı çalışması açılacaktır.');
-      return;
-    }
-    if (typeof window.savedTestV617 === 'function' && window.savedTestV617()) {
-      alert('Önce duraklatılmış testini tamamlamalısın.');
-      return;
-    }
-    const qs=uniqueQuestions(t);
-    if (!qs.length) {alert('Bu konuda mevcut sorulardan farklı yeni soru kalmadı.');return;}
-    active={t,questions:qs,index:0,answers:[]};
-    course=COURSE;topic=t;view='din-written-work';
-    showPractice();
+
+  if (typeof RELIGION_DATA !== 'object' || !Array.isArray(RELIGION_DATA[COURSE])) return;
+  const data = RELIGION_DATA[COURSE];
+
+  // Her konu testinde kaynak belgelerden gelen 6 yeni soru vardır; kalan dört soru önceki testten korunur.
+  data.slice(0, 4).forEach((item, topicIndex) => {
+    if (item.__din511Applied) return;
+    const existing = Array.isArray(item.questions) ? item.questions.map(question => ({ ...question })) : [];
+    item.questions = QUESTION_BANK[topicIndex].concat(existing.slice(0, 4));
+    item.__din511Applied = true;
+  });
+
+  window.openDin511Pdf = function (source, page) {
+    const item = SOURCES[source];
+    if (!item) return;
+    window.open(`${item.file}#page=${safePage(page)}`, '_blank', 'noopener');
   };
+
+  function sourceLinks(topicIndex) {
+    const items = SOURCE_LESSONS[topicIndex] || [];
+    const used = [...new Set(items.map(item => item.source))];
+    return used.map(source => {
+      const first = items.find(item => item.source === source);
+      const item = SOURCES[source];
+      return `<a href="${item.file}#page=${first.page}" target="_blank" rel="noopener noreferrer">📄 ${esc(item.label)} · s. ${first.page}</a>`;
+    }).join('');
+  }
+
   function decorateCourse() {
-    if (typeof course !== 'string'||course!==COURSE||view!=='course')return;
-    const cards=[...document.querySelectorAll('#app .rel-item')];
-    for(let i=0;i<4&&i<cards.length;i++){
-      const card=cards[i],host=card.querySelector('.rel-actions')||card;
-      if(card.querySelector('.din-2026-sources'))continue;
-      const box=document.createElement('div');
-      box.className='din-2026-sources';
-      box.style.cssText='margin-top:12px;padding-top:10px;border-top:1px solid #8998aa44';
-      const locked=typeof window.topicAccessibleV651==='function'&&!window.topicAccessibleV651(COURSE,i);
-      box.innerHTML='<p class="muted small">Yazılıya hazırlık · '+TOPIC_OUTCOMES[i]+'</p><div class="rel-actions din-official-links">'+itemLinks()+'</div>';
-      const button=document.createElement('button');button.type='button';button.textContent='✍️ 8 yeni açık uçlu soru';button.className='primary';button.disabled=locked;
-      button.title=locked?'Önceki konuyu tamamla':'MEB EBA ve MEBİ belgelerinden yeni üretilen sorular';
-      button.addEventListener('click',()=>window.startDinWrittenPractice2026(i));box.appendChild(button);host.appendChild(box);
+    if (typeof course !== 'string' || course !== COURSE || view !== 'course') return;
+    const cards = [...document.querySelectorAll('#app .rel-item')];
+    cards.slice(0, 4).forEach((card, topicIndex) => {
+      if (card.querySelector('.din511-course-source')) return;
+      const box = document.createElement('section');
+      box.className = 'din511-course-source';
+      box.innerHTML = `<b>📚 511 EBA + MEBİ ek kaynak çalışması</b><p>${esc(TOPICS[topicIndex])} için 2 kısa kaynak bölümü ve konu testine eklenmiş 6 soru.</p><div class="din511-links">${sourceLinks(topicIndex)}</div>`;
+      const host = card.querySelector('.rel-actions') || card;
+      host.insertAdjacentElement('beforebegin', box);
+    });
+  }
+
+  function sourceLesson(topicIndex, sourceIndex) {
+    const sections = SOURCE_LESSONS[topicIndex];
+    const section = sections && sections[sourceIndex];
+    const topicData = data[topicIndex];
+    if (!section || !topicData) return window.openCourse(COURSE);
+    if (typeof window.topicAccessibleV651 === 'function' && !window.topicAccessibleV651(COURSE, topicIndex)) {
+      alert('Bu konu kilitli. Önce bir önceki konuyu tamamlamalısın.');
+      return;
     }
+    course = COURSE;
+    topic = topicIndex;
+    view = 'lesson';
+    const source = SOURCES[section.source];
+    const baseCount = topicData.__din511BaseStageCount || topicData.stages.length;
+    app.innerHTML = `<div class="rel-block din511-lesson"><div class="rel-top"><button onclick="home()">⌂</button><div><strong>Din Kültürü</strong><div>${esc(topicData.title)}</div></div><b>⭐ ${state.points}</b></div><div class="rel-top"><h3>511 EBA + MEBİ kaynak çalışması</h3><span>Bölüm ${sourceIndex + 1}/${sections.length}</span></div><div class="fen-segments">${sections.map((_, index) => `<span class="${index <= sourceIndex ? 'on' : ''}"></span>`).join('')}</div><section class="din511-panel"><p class="din511-kicker">${esc(source.label)} · PDF s. ${section.page}</p><h2>${esc(section.title)}</h2><p>${esc(section.body)}</p><div class="din511-links"><a href="${source.file}#page=${section.page}" target="_blank" rel="noopener noreferrer">📄 PDF’de bu sayfayı aç</a></div></section><div class="rel-actions"><button onclick="${sourceIndex === 0 ? `lesson(${topicIndex},${baseCount - 1})` : `din511Lesson(${topicIndex},${sourceIndex - 1})`}">← Önceki</button><button class="primary" onclick="${sourceIndex + 1 < sections.length ? `din511Lesson(${topicIndex},${sourceIndex + 1})` : `startQuiz('${COURSE}',${topicIndex},'normal')`}">${sourceIndex + 1 < sections.length ? 'Sonraki kaynak bölümü →' : 'Konu testi →'}</button></div></div>`;
+    try { rememberScreen({ type:'lesson', course:COURSE, topic:topicIndex, part:baseCount + sourceIndex }); } catch (_) {}
+    window.scrollTo(0, 0);
   }
-  const previousOpen=window.openCourse;
-  if(typeof previousOpen==='function'){
-    window.openCourse=openCourse=function(c){const res=previousOpen.apply(this,arguments);if(c===COURSE)decorateCourse();return res;};
-  }
-  const previousLesson=window.lesson;
-  if(typeof previousLesson==='function'){
-    window.lesson=lesson=function(i,part){const res=previousLesson.apply(this,arguments);if(course===COURSE&&Number(i)<4&&view==='lesson'){
-      const host=document.querySelector('#app .rel-actions');
-      if(host&&!document.getElementById('din-written-lesson-btn')){
-        const btn=document.createElement('button');btn.id='din-written-lesson-btn';btn.textContent='✍️ Yazılı çalışma soruları';btn.onclick=()=>window.startDinWrittenPractice2026(Number(i));host.appendChild(btn);
+
+  window.din511Lesson = sourceLesson;
+  const oldOpenCourse = window.openCourse;
+  window.openCourse = openCourse = function (name) {
+    const result = oldOpenCourse.apply(this, arguments);
+    if (name === COURSE) decorateCourse();
+    return result;
+  };
+
+  const oldLesson = window.lesson;
+  window.lesson = lesson = function (topicIndex, part = 0) {
+    if (course === COURSE && Number(topicIndex) >= 0 && Number(topicIndex) < 4) {
+      const item = data[Number(topicIndex)];
+      const baseCount = item.__din511BaseStageCount || (item.__din511BaseStageCount = item.stages.length);
+      if (Number(part) >= baseCount) return sourceLesson(Number(topicIndex), Number(part) - baseCount);
+    }
+    const result = oldLesson.apply(this, arguments);
+    if (course === COURSE && Number(topicIndex) >= 0 && Number(topicIndex) < 4 && view === 'lesson') {
+      const item = data[Number(topicIndex)];
+      const baseCount = item.__din511BaseStageCount || (item.__din511BaseStageCount = item.stages.length);
+      if (Number(part) === baseCount - 1) {
+        const actions = [...document.querySelectorAll('#app .rel-actions')].pop();
+        const next = actions && actions.querySelector('button.primary');
+        if (next) {
+          next.textContent = '511 kaynak çalışması →';
+          next.setAttribute('onclick', `lesson(${Number(topicIndex)},${baseCount})`);
+        }
       }
-    }return res;};
-  }
-  const css=document.createElement('style');css.textContent='.din-official-links{display:flex;gap:8px;flex-wrap:wrap}.din-official-links a{color:#155e75;text-decoration:underline;padding:6px 0;font-size:13px}.din-2026-sources .rel-actions{margin:3px 0 8px}.din-2026-sources button{font-size:14px}#din-written-answer{display:block;width:100%;min-height:130px;margin:12px 0;font-size:16px;line-height:1.45;resize:vertical}';document.head.appendChild(css);
-  if(typeof view!=='undefined'&&view==='course'&&course===COURSE)decorateCourse();
-  window.__DIN_YAZILI_2026__={version:'2026-11-02',count:BANK.map(a=>a.length),sourceUrls:SOURCE_URLS,outcomes:TOPIC_OUTCOMES};
+    }
+    return result;
+  };
+
+  const style = document.createElement('style');
+  style.textContent = `.din511-course-source{margin:11px 0;padding:11px 12px;border:1px solid #61b6be77;border-radius:13px;background:#0d4c5a24}.din511-course-source p{margin:6px 0;font-size:14px}.din511-links{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}.din511-links a{color:#8ce6ee;text-decoration:underline;font-size:14px}.din511-lesson{padding-bottom:36px}.din511-panel{margin:15px 0;padding:18px;border-radius:18px;background:#144553;color:#f1fbfc;border:1px solid #76d5df}.din511-panel h2{margin-top:4px}.din511-panel p{font-size:18px;line-height:1.65}.din511-kicker{font-size:14px!important;opacity:.88}`;
+  document.head.appendChild(style);
+
+  // V6.51 GTT altyapısı bu fonksiyonu çağırarak yalnızca güncellemeden önce tamamlanmış konuların yeni sorularını sunar.
+  window.__DURU_DIN_511_TEST__ = {
+    version: '2026-11-02',
+    sources: SOURCES,
+    school(courseName, topicIndex) {
+      if (courseName !== COURSE || !Number.isInteger(Number(topicIndex)) || Number(topicIndex) < 0 || Number(topicIndex) > 3) return [];
+      return QUESTION_BANK[Number(topicIndex)].map((item, index) => ({ ...item, id:`DIN-511-${topicIndex}-${index}`, c:COURSE, t:Number(topicIndex), din511Source:true }));
+    }
+  };
+
+  if (typeof view !== 'undefined' && view === 'course' && course === COURSE) decorateCourse();
 })();

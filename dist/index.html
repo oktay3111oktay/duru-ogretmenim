@@ -5082,7 +5082,8 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
     'recoveredTestSessionsV648', 'startedTopicsV651', 'requiredExtraV651',
     'wrongQuestionLogV651', 'extraQuestionHistoryV651', 'normalQuestionHistoryV651',
     'wrongGttCursorV651', 'wrongLegacyMigratedV651', 'wrongLegacyUnmatchedV651',
-    'schoolNewQuestionResolvedV6513', 'schoolNewQuestionEligibleV6513'
+    'schoolNewQuestionResolvedV6513', 'schoolNewQuestionEligibleV6513',
+    'din511SourceGttResolvedV6514', 'din511SourceGttEligibleV6514'
   ]);
   const LEARNING_PROGRESS_AUX = new Set(['activeTest', 'testRecovery', 'lastScreen', 'route', 'gtt']);
 
@@ -5104,6 +5105,8 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
     clean.wrongGttCursorV651 = {};
     clean.schoolNewQuestionResolvedV6513 = {};
     clean.schoolNewQuestionEligibleV6513 = {};
+    clean.din511SourceGttResolvedV6514 = {};
+    clean.din511SourceGttEligibleV6514 = {};
     clean.wrongLegacyMigratedV651 = true;
     clean.wrongLegacyUnmatchedV651 = 0;
     delete clean.pendingSession;
@@ -5183,6 +5186,8 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
     merged.wrongQuestionLogV651 = unionArray(remote.wrongQuestionLogV651, local.wrongQuestionLogV651);
     merged.schoolNewQuestionResolvedV6513 = mergeMaps(remote.schoolNewQuestionResolvedV6513, local.schoolNewQuestionResolvedV6513, (r, l) => !!r || !!l);
     merged.schoolNewQuestionEligibleV6513 = mergeMaps(remote.schoolNewQuestionEligibleV6513, local.schoolNewQuestionEligibleV6513, (r, l) => !!r || !!l);
+    merged.din511SourceGttResolvedV6514 = mergeMaps(remote.din511SourceGttResolvedV6514, local.din511SourceGttResolvedV6514, (r, l) => !!r || !!l);
+    merged.din511SourceGttEligibleV6514 = mergeMaps(remote.din511SourceGttEligibleV6514, local.din511SourceGttEligibleV6514, (r, l) => !!r || !!l);
     return { schemaVersion: 1, appVersion: SYNC_VERSION, appState: merged, aux: Object.assign({}, remoteSnapshot.aux || {}, localSnapshot.aux || {}) };
   }
 
@@ -6154,6 +6159,15 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
     Object.entries(state.done||{}).forEach(([k,v])=>{if(v)state.schoolNewQuestionEligibleV6513[k]=true});
     persist();
   }
+  state.din511SourceGttResolvedV6514=state.din511SourceGttResolvedV6514&&typeof state.din511SourceGttResolvedV6514==='object'?state.din511SourceGttResolvedV6514:{};
+  if(!state.din511SourceGttEligibleV6514||typeof state.din511SourceGttEligibleV6514!=='object'){
+    state.din511SourceGttEligibleV6514={};
+    Object.entries(state.done||{}).forEach(([k,v])=>{
+      const match=String(k).match(/^Din Kültürü\|(\d+)$/);
+      if(v&&match&&Number(match[1])>=0&&Number(match[1])<4)state.din511SourceGttEligibleV6514[k]=true;
+    });
+    persist();
+  }
   state.unlockAllV651=state.unlockAllV651===true;
 
   function remediation(c,t){return !!state.requiredExtraV651[stateKey(c,t)]?.required}
@@ -6233,6 +6247,16 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
         });
       });
     }
+    const din511=window.__DURU_DIN_511_TEST__;
+    if(din511?.school&&(!scope||scope==='Din Kültürü')){
+      (topics['Din Kültürü']||[]).slice(0,4).forEach((_,t)=>{
+        if(!state.din511SourceGttEligibleV6514[stateKey('Din Kültürü',t)])return;
+        din511.school('Din Kültürü',t).forEach(raw=>{
+          const q=validQuestion(raw,'Din Kültürü',t),id=q&&questionId(q);
+          if(id&&!state.din511SourceGttResolvedV6514[id])map.set(id,{...q,id});
+        });
+      });
+    }
     state.wrongQuestionLogV651.forEach(entry=>{if(scope&&entry.c!==scope)return;const q=validQuestion(entry,entry.c,entry.t);if(q){const id=entry.id||questionId(q);if(!map.has(id)){
       const legacyTurkish=entry.c==='Türkçe'&&entry.kind==='school'&&['turkish_eck_1','turkish_eck_2'].includes(entry.privateSource?.sourceId);
       map.set(id,{...q,id,prompt:legacyTurkish?q.prompt.replace(/^Okul çalışma kitabındaki “[^”]+” ile eşleşen beceriyi düşün\.\s*/,''):q.prompt,privateSource:legacyTurkish?null:entry.privateSource||q.privateSource||null});
@@ -6240,7 +6264,7 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
     return [...map.values()];
   }
   function newQuestionPending(scope=''){
-    return wrongPool(scope).filter(q=>q.newInV6513&&!state.schoolNewQuestionResolvedV6513[q.id]).length;
+    return wrongPool(scope).filter(q=>(q.newInV6513&&!state.schoolNewQuestionResolvedV6513[q.id])||(q.din511Source&&!state.din511SourceGttResolvedV6514[q.id])).length;
   }
   function migrateLegacyWrongs(){
     if(state.wrongLegacyMigratedV651)return;
@@ -6309,7 +6333,11 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
     const result=finishBeforeV651.apply(this,arguments);
     if(!s.pending?.length){
       let changed=false;
-      (s.qs||[]).forEach(q=>{if(!q.newInV6513)return;const id=questionId(q);if(!state.schoolNewQuestionResolvedV6513[id]){state.schoolNewQuestionResolvedV6513[id]=true;changed=true}});
+      (s.qs||[]).forEach(q=>{
+        const id=questionId(q);
+        if(q.din511Source&&!state.din511SourceGttResolvedV6514[id]){state.din511SourceGttResolvedV6514[id]=true;changed=true}
+        if(q.newInV6513&&!state.schoolNewQuestionResolvedV6513[id]){state.schoolNewQuestionResolvedV6513[id]=true;changed=true}
+      });
       if(changed)persist();
     }
     const card=document.querySelector('.completion-card');
@@ -6527,7 +6555,7 @@ window.badgeMakeSVG=function drawBadge(d,editable=false){
 </script>
 
 <!-- EBA + MEBİ 5. sınıf Din Kültürü kaynakları ve özgün yazılı çalışması -->
-<script src="./din-kulturu-yazili-2026.js?v=20261102"></script>
+<script src="./din-kulturu-yazili-2026.js?v=20261102-511"></script>
 <style>
   .veli-progress-row{margin:16px 0;padding:12px;border:1px solid #829bc455;border-radius:12px}
   .veli-progress-head{display:flex;justify-content:space-between;gap:12px;margin-bottom:8px}
