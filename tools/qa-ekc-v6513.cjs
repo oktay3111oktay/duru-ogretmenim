@@ -29,7 +29,12 @@ const assert = (ok, message) => {if (!ok) throw new Error(message)};
   const url = process.env.QA_URL || pathToFileURL(path.resolve(__dirname, '../dist/index.html')).href;
   const response = await page.goto(url, {waitUntil: 'domcontentloaded', timeout: 120000});
   if (url.startsWith('http')) assert(response?.ok(), 'Uygulama sayfası açılmadı');
+  if (url.startsWith('https://')) {
+    await page.waitForFunction(() => navigator.serviceWorker?.controller && sessionStorage.getItem('duru-v651-controller-reload') === '1', undefined, {timeout:60000});
+    await page.waitForLoadState('load');
+  }
   await page.waitForSelector('#app h1');
+  await page.waitForFunction(() => !!(window.__DURU_V649_TEST__ && window.__DURU_V651_TEST__ && window.__DURU_PROGRESS_V6513_TEST__), undefined, {timeout:60000});
   const before = await page.evaluate(() => {
     const v = window.__DURU_V651_TEST__, p = window.__DURU_V649_TEST__;
     if (!v || !p) throw new Error('Test API eksik');
@@ -72,6 +77,13 @@ const assert = (ok, message) => {if (!ok) throw new Error(message)};
   assert(before.hasButton && before.panelVisible, 'Veli ilerleme düğmesi açılmadı');
   assert(before.badgeSvgOkay, 'Rozet çizimi SVG içinde korunmadı');
   assert(before.width <= before.innerWidth + 1, '390 pikselde yatay taşma');
+  const images = [];
+  for (const [source, sourcePage] of [['science_eck',3],['math_eck',26],['turkish_eck_1',7],['fenomen_1_p1',null]]) {
+    await page.evaluate(([id,p]) => openPrivateSourceV649(id,p), [source,sourcePage]);
+    await page.waitForFunction(() => document.querySelector('.duru-private-modal.open img')?.naturalWidth > 0, undefined, {timeout:20000});
+    images.push(await page.locator('.duru-private-modal.open img').evaluate(img => ({src:img.src,width:img.naturalWidth})));
+    await page.evaluate(() => closePrivateSourceV649());
+  }
   const after = await page.evaluate(() => {
     startWrongGttV651('Fen Bilimleri');
     const asked = session.qs.map(q => q.id);
@@ -95,6 +107,6 @@ const assert = (ok, message) => {if (!ok) throw new Error(message)};
   assert(!errors.length, `Tarayıcı hatası: ${errors.join(' | ')}`);
   console.log(JSON.stringify({url, before: {counts: before.counts, fenPages: before.fenPages, pending: before.pending.length,
     progress: before.progress.map(x => ({course:x.name,percent:x.percent})), width:before.width},
-    after: {asked:after.asked.length,resolved:after.resolved,remaining:after.remaining},errors}, null, 2));
+    images, after: {asked:after.asked.length,resolved:after.resolved,remaining:after.remaining},errors}, null, 2));
   await browser.close();
 })().catch(error => {console.error(error.stack || error);process.exitCode = 1});
