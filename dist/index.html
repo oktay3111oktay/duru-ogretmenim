@@ -5083,7 +5083,8 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
     'wrongQuestionLogV651', 'extraQuestionHistoryV651', 'normalQuestionHistoryV651',
     'wrongGttCursorV651', 'wrongLegacyMigratedV651', 'wrongLegacyUnmatchedV651',
     'schoolNewQuestionResolvedV6513', 'schoolNewQuestionEligibleV6513',
-    'din511SourceGttResolvedV6514', 'din511SourceGttEligibleV6514'
+    'din511SourceGttResolvedV6514', 'din511SourceGttEligibleV6514',
+    'optionalRetrySessionsV6516', 'completedExtraTestsV6516'
   ]);
   const LEARNING_PROGRESS_AUX = new Set(['activeTest', 'testRecovery', 'lastScreen', 'route', 'gtt']);
 
@@ -5107,6 +5108,8 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
     clean.schoolNewQuestionEligibleV6513 = {};
     clean.din511SourceGttResolvedV6514 = {};
     clean.din511SourceGttEligibleV6514 = {};
+    clean.optionalRetrySessionsV6516 = {};
+    clean.completedExtraTestsV6516 = {};
     clean.wrongLegacyMigratedV651 = true;
     clean.wrongLegacyUnmatchedV651 = 0;
     delete clean.pendingSession;
@@ -5170,7 +5173,7 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
     const remote = remoteSnapshot.appState;
     const merged = Object.assign({}, clone(remote), clone(local));
     merged.points = Math.max(Number(local.points) || 0, Number(remote.points) || 0);
-    for (const field of ['done', 'generalPassed', 'generalSeen', 'collection', 'badgeDesigns', 'materials', 'materialQuestions', 'mathPractice', 'startedTopicsV651']) {
+    for (const field of ['done', 'generalPassed', 'generalSeen', 'collection', 'badgeDesigns', 'materials', 'materialQuestions', 'mathPractice', 'startedTopicsV651', 'completedExtraTestsV6516']) {
       merged[field] = mergeMaps(remote[field], local[field], (r, l) => {
         if (typeof r === 'boolean' || typeof l === 'boolean') return !!r || !!l;
         if (isObject(r) && isObject(l)) return Object.assign({}, clone(r), clone(l));
@@ -5188,6 +5191,7 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
     merged.schoolNewQuestionEligibleV6513 = mergeMaps(remote.schoolNewQuestionEligibleV6513, local.schoolNewQuestionEligibleV6513, (r, l) => !!r || !!l);
     merged.din511SourceGttResolvedV6514 = mergeMaps(remote.din511SourceGttResolvedV6514, local.din511SourceGttResolvedV6514, (r, l) => !!r || !!l);
     merged.din511SourceGttEligibleV6514 = mergeMaps(remote.din511SourceGttEligibleV6514, local.din511SourceGttEligibleV6514, (r, l) => !!r || !!l);
+    merged.optionalRetrySessionsV6516 = mergeMaps(remote.optionalRetrySessionsV6516, local.optionalRetrySessionsV6516, (r, l) => String(l?.updatedAt || l?.createdAt || '') >= String(r?.updatedAt || r?.createdAt || '') ? clone(l) : clone(r));
     return { schemaVersion: 1, appVersion: SYNC_VERSION, appState: merged, aux: Object.assign({}, remoteSnapshot.aux || {}, localSnapshot.aux || {}) };
   }
 
@@ -6471,6 +6475,120 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
 })();
 </script>
 <!-- /V6.51 -->
+
+<!-- V6.51.6: completed-topic record repair and non-blocking checkpoints for completed-test retries. -->
+<script id="duru-v6516-completion-and-retry">
+(function(){
+  'use strict';
+  const ACTIVE_KEY='duru_teacher_active_test_v617';
+  const RETRY_LIMIT=24;
+  state.history=state.history&&typeof state.history==='object'?state.history:{};
+  state.done=state.done&&typeof state.done==='object'?state.done:{};
+  state.optionalRetrySessionsV6516=state.optionalRetrySessionsV6516&&typeof state.optionalRetrySessionsV6516==='object'?state.optionalRetrySessionsV6516:{};
+  state.completedExtraTestsV6516=state.completedExtraTestsV6516&&typeof state.completedExtraTestsV6516==='object'?state.completedExtraTestsV6516:{};
+
+  function topicKey(c,t){return String(c)+'|'+Number(t)}
+  function retryKey(c,t,kind){return String(kind)+'|'+topicKey(c,t)}
+  function historyCompletion(c,t){
+    const rows=state.history[topicKey(c,t)];
+    if(!Array.isArray(rows)||!rows.length)return '';
+    const last=[...rows].reverse().find(row=>row&&typeof row==='object'&&row.date);
+    return last?.date||'';
+  }
+  function topicCompleted(c,t){return !!state.done[topicKey(c,t)]||!!historyCompletion(c,t)}
+  function extraCompleted(c,t){return !!state.completedExtraTestsV6516[topicKey(c,t)]}
+  function repairCompletedTopics(){
+    let changed=false;
+    Object.keys(topics||{}).forEach(c=>(topics[c]||[]).forEach((_,t)=>{
+      const k=topicKey(c,t),date=historyCompletion(c,t);
+      if(!state.done[k]&&date){state.done[k]=date;changed=true}
+    }));
+    if(changed)persist();
+    return changed;
+  }
+  function readActive(){try{return JSON.parse(localStorage.getItem(ACTIVE_KEY)||'null')}catch(_){return null}}
+  function recordInfo(record){
+    const q=record?.session?.qs?.[0]||{};
+    const c=String(record?.courseId||record?.course||q.sourceCourseId||q.c||'');
+    const rawTopic=record?.topicId??record?.topic??q.sourceTopicId??q.t;
+    const t=Number(rawTopic),kind=String(record?.testKind||record?.session?.kind||'');
+    return topics[c]&&Number.isInteger(t)&&topics[c]?.[t]&&['normal','extra'].includes(kind)?{c,t,kind}:null;
+  }
+  function isCompletedRetry(info){return !!info&&(info.kind==='normal'?topicCompleted(info.c,info.t):extraCompleted(info.c,info.t))}
+  function trimRetries(){
+    const entries=Object.entries(state.optionalRetrySessionsV6516);
+    if(entries.length<=RETRY_LIMIT)return;
+    entries.sort((a,b)=>String(a[1]?.updatedAt||a[1]?.createdAt||'').localeCompare(String(b[1]?.updatedAt||b[1]?.createdAt||'')));
+    entries.slice(0,entries.length-RETRY_LIMIT).forEach(([k])=>delete state.optionalRetrySessionsV6516[k]);
+  }
+  function moveActiveRetryToOptional(){
+    const record=readActive(),info=recordInfo(record);
+    if(!record||!isCompletedRetry(info))return false;
+    state.optionalRetrySessionsV6516[retryKey(info.c,info.t,info.kind)]=record;
+    if(info.kind==='normal'&&state.pendingSession)delete state.pendingSession;
+    trimRetries();
+    localStorage.removeItem(ACTIVE_KEY);
+    persist();
+    return true;
+  }
+  function resumeOptionalRetry(c,t,kind){
+    const k=retryKey(c,t,kind),record=state.optionalRetrySessionsV6516[k];
+    if(!record)return false;
+    localStorage.setItem(ACTIVE_KEY,JSON.stringify(record));
+    delete state.optionalRetrySessionsV6516[k];
+    persist();
+    return resumeSavedTestV617();
+  }
+
+  const startQuizBeforeV6516=window.startQuiz;
+  window.startQuiz=startQuiz=function(c,t,kind){
+    const n=Number(t);
+    if(!readActive()&&Number.isInteger(n)&&['normal','extra'].includes(kind)&&state.optionalRetrySessionsV6516[retryKey(c,n,kind)])return resumeOptionalRetry(c,n,kind);
+    return startQuizBeforeV6516.apply(this,arguments);
+  };
+
+  const finishBeforeV6516=window.finishSession;
+  window.finishSession=finishSession=function(){
+    const s=session,ready=!!s&&(!Array.isArray(s.pending)||s.pending.length===0),kind=s?.kind;
+    const firstKey=String(s?.keys?.[0]||''),at=firstKey.lastIndexOf('|');
+    const c=at>0?firstKey.slice(0,at):course,t=at>0?Number(firstKey.slice(at+1)):Number(topic);
+    const result=finishBeforeV6516.apply(this,arguments);
+    if(ready&&kind==='extra'&&topics[c]?.[t]&&!state.requiredExtraV651?.[topicKey(c,t)]?.required){
+      state.completedExtraTestsV6516[topicKey(c,t)]=new Date().toISOString();
+      delete state.optionalRetrySessionsV6516[retryKey(c,t,'extra')];
+      persist();
+    }
+    if(ready&&kind==='normal'&&topics[c]?.[t])delete state.optionalRetrySessionsV6516[retryKey(c,t,'normal')];
+    return result;
+  };
+
+  const exitBeforeV6516=window.exitTestV617;
+  window.exitTestV617=exitTestV617=function(){
+    if(!session)return home();
+    recordTestV617(testUiStageV617);
+    const info=recordInfo(readActive());
+    if(!isCompletedRetry(info))return exitBeforeV6516.apply(this,arguments);
+    moveActiveRetryToOptional();
+    home();
+  };
+
+  const homeBeforeV6516=window.home;
+  window.home=home=function(){
+    moveActiveRetryToOptional();
+    const result=homeBeforeV6516.apply(this,arguments);
+    const notice=document.getElementById('paused-test-v617');
+    if(!readActive()&&notice)notice.remove();
+    return result;
+  };
+
+  const repaired=repairCompletedTopics();
+  moveActiveRetryToOptional();
+  const staleNotice=document.getElementById('paused-test-v617');
+  if(!readActive()&&staleNotice)staleNotice.remove();
+  if(repaired&&view==='course'&&course)openCourse(course);
+  window.__DURU_V6516_TEST__={topicCompleted,extraCompleted,repairCompletedTopics,recordInfo,isCompletedRetry,moveActiveRetryToOptional,resumeOptionalRetry,retryKey};
+})();
+</script>
 
 <script>
 if('serviceWorker' in navigator&&location.protocol==='https:'){
