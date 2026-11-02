@@ -6369,7 +6369,7 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
   function mathTopicLabel(title){return String(title||'').replace(/^\s*MAT(?:\.\d+){3}\s*[·:–—-]?\s*/i,'').trim()}
   function removeDuplicateTopicStatuses(card){
     card.querySelectorAll('.duru-v645-status,.v651-topic-status').forEach(x=>x.remove());
-    const statusPattern=/(?:✅\s*(?:Konu testi )?tamamlandı|🔒\s*(?:Kilitli|Önceki konunun GTT sonucu bekleniyor)|📖\s*(?:Öğrenmeye|Çalışmaya) hazır|🧠\s*GTT Bekleniyor)/i;
+    const statusPattern=/(?:✅\s*(?:Konu testi |Konu )?tamamlandı|🔴\s*Konu testi bitti[^·]*|🔒\s*(?:Kilitli|Önceki konunun GTT sonucu bekleniyor)|📖\s*(?:Öğrenmeye|Çalışmaya) hazır|📚\s*Çalışılıyor|🧠\s*GTT Bekleniyor)/i;
     card.querySelectorAll('small,p').forEach(node=>{
       const text=String(node.textContent||'').replace(/\s+/g,' ').trim(),match=text.match(statusPattern);if(!match)return;
       const remainder=text.slice(0,match.index).replace(/[·\-–—\s]+$/,'').trim();
@@ -6388,10 +6388,20 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
       [learn,normal].forEach(b=>{if(locked)b.title='Önce önceki konuyu tamamla';else b.removeAttribute('title')});
       extra.classList.toggle('v651-extra-required',required);extra.textContent=required?'🔴 Zorunlu Ekstra Test':'✨ Ekstra test';extra.title=required?'Bir sonraki konu için %80 başarı gerekli':extraReady?'10 soruluk Ekstra Test':'Önce Konu Testini tamamla';
       removeDuplicateTopicStatuses(card);card.querySelectorAll('.v651-required-note').forEach(x=>x.remove());
-      const status=document.createElement('div');status.className='v651-topic-status';status.textContent=done(c,i)?'✅ Konu testi tamamlandı':locked?'🔒 Kilitli':'📖 Öğrenmeye hazır';const head=card.querySelector('h2,h3,.fen-details strong');if(head)head.insertAdjacentElement('afterend',status);
+      const started=!!state.startedTopicsV651[stateKey(c,i)],fullyDone=done(c,i)&&!required;
+      const status=document.createElement('div');status.className='v651-topic-status';status.textContent=required?'🔴 Konu testi bitti · Zorunlu Ekstra Test bekliyor':fullyDone?'✅ Konu tamamlandı':locked?'🔒 Kilitli':started?'📚 Çalışılıyor':'📖 Öğrenmeye hazır';const head=card.querySelector('h2,h3,.fen-details strong');if(head)head.insertAdjacentElement('afterend',status);
       if(required){const note=document.createElement('div');note.className='v651-required-note';note.textContent='%80’in altında puan aldığın için Ekstra Testi de çözmelisin.';host.insertAdjacentElement('beforebegin',note)}
       card.querySelectorAll('.duru-school-test').forEach(b=>b.disabled=locked||!done(c,i));
     });
+  }
+  function updateCourseProgressHeading(c){
+    if(c!=='Türkçe')return;
+    const label=document.querySelector('#app .fen-header small'),list=topics[c]||[];
+    if(!label)return;
+    const testCompleted=list.filter((_,i)=>done(c,i)).length;
+    const completed=list.filter((_,i)=>done(c,i)&&!remediation(c,i)).length;
+    const required=list.filter((_,i)=>remediation(c,i)).length;
+    label.textContent=`${completed}/${list.length} konu tamamlandı · ${testCompleted}/${list.length} konu testi bitti${required?` · ${required} zorunlu Ekstra bekliyor`:''} · MEB 1. ve 2. kitap`;
   }
   function removeCourseResourceCards(){
     document.querySelectorAll('#app .course-extra,#app .card,#app .fen-item').forEach(el=>{const h=el.querySelector(':scope > h2,:scope > h3');const title=(h?.textContent||'').trim();if(/^📎?\s*PDF\s*\/\s*fotoğraf kaynaklarım$/i.test(title)||/^📘?\s*MEB kaynakları$/i.test(title))el.remove()});
@@ -6415,7 +6425,7 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
       btn.onclick=null;btn.dataset.v651WrongBound='1';btn.addEventListener('click',event=>{if(check.checked){event.preventDefault();startWrongGttV651(c)}else handler.call(btn,event)});
     });
   }
-  function decorateCourseV651(c){if(view!=='course')return;ensureMathGtt();removeCourseResourceCards();decorateTopicCards(c);addSubjectWrongOptions(c)}
+  function decorateCourseV651(c){if(view!=='course')return;ensureMathGtt();removeCourseResourceCards();decorateTopicCards(c);updateCourseProgressHeading(c);addSubjectWrongOptions(c)}
 
   function decorateHomeV651(){
     const heading=[...document.querySelectorAll('#app h2')].find(h=>/Araçlar/.test(h.textContent||'')),actions=heading?.parentElement?.querySelector('.teacher-parent-actions');if(!actions||actions.querySelector('.v651-pdf-tool'))return;
@@ -6561,7 +6571,10 @@ window.badgeMakeSVG=function drawBadge(d,editable=false){
   .veli-progress-head{display:flex;justify-content:space-between;gap:12px;margin-bottom:8px}
   .veli-progress-track{height:16px;overflow:hidden;border-radius:999px;background:#a9b8cd66}
   .veli-progress-track span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#54b5ad,#4f79d4)}
+  .veli-progress-subhead{display:flex;justify-content:space-between;gap:12px;margin:10px 0 5px;font-size:13px}
+  .veli-progress-track.test-progress{height:10px}
+  .veli-progress-track.test-progress span{background:linear-gradient(90deg,#f59e0b,#ea7b2c)}
   .veli-progress-row small{display:block;margin-top:8px;line-height:1.5}
   #veli-ilerleme-v6513[hidden]{display:none}
 </style>
-<script src="./veli-ilerleme-v6513.js?v=20261102"></script>
+<script src="./veli-ilerleme-v6513.js?v=20261102-6515"></script>
