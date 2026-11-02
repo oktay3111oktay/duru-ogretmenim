@@ -6177,8 +6177,7 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
   function remediation(c,t){return !!state.requiredExtraV651[stateKey(c,t)]?.required}
   function topicAccessible(c,i){
     i=Number(i);if(!Number.isInteger(i)||i<0||!topics[c]?.[i])return false;
-    const own=stateKey(c,i);
-    if(state.unlockAllV651||state.startedTopicsV651[own]||done(c,i))return true;
+    if(state.unlockAllV651||done(c,i))return true;
     if(c===SECOND&&i===0){const first=topics[DIN]||[],last=first.length-1;return last>=0&&done(DIN,last)&&!remediation(DIN,last)}
     if(i===0)return true;
     return done(c,i-1)&&!remediation(c,i-1);
@@ -6186,7 +6185,7 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
   window.topicAccessibleV651=topicAccessible;
   window.unlockedAfter=function(c,i){
     i=Number(i);if(!Number.isInteger(i)||i<0)return false;
-    return state.unlockAllV651||state.startedTopicsV651[stateKey(c,i+1)]||done(c,i+1)||(done(c,i)&&!remediation(c,i));
+    return state.unlockAllV651||done(c,i+1)||(done(c,i)&&!remediation(c,i));
   };
 
   function markStarted(c,t){
@@ -6449,7 +6448,7 @@ const ENGLISH_MEB_PAGES={"L:27":"assets/fc4f0443e913b37e46fe7946.jpg","L:30":"as
   window.setUnlockAllV651=function(value){state.unlockAllV651=!!value;persist();parentView()};
   function decorateParentV651(){
     if(document.getElementById('v651-parent-lock'))return;const anchor=document.querySelector('.teacher-parent-card')||document.querySelector('#app .card');if(!anchor)return;
-    const box=document.createElement('section');box.id='v651-parent-lock';box.className='card v651-parent-lock';box.innerHTML=`<div class="v651-lock-row"><div><h2>🔐 Konu kilitleri</h2><p>${state.unlockAllV651?'Tüm konular geçici olarak açık. Kapatıldığında tamamlanan ve daha önce başlanmış konular açık kalır; diğerleri normal sıraya döner.':'Normal sıra etkin. Tamamlanan ve başlanmış konular korunur.'}</p></div><button class="${state.unlockAllV651?'pastel-peach':'primary'}" onclick="setUnlockAllV651(${state.unlockAllV651?'false':'true'})">${state.unlockAllV651?'Kapa':'Aç'}</button></div>`;anchor.after(box);
+    const box=document.createElement('section');box.id='v651-parent-lock';box.className='card v651-parent-lock';box.innerHTML=`<div class="v651-lock-row"><div><h2>🔐 Konu kilitleri</h2><p>${state.unlockAllV651?'Tüm konular geçici olarak açık. Kapatıldığında yalnızca tamamlanan konular ve sıradaki uygun konu açık kalır.':'Normal sıra etkin. Başlanmış olsa bile sırası gelmeyen konu kilitli kalır; başlanma geçmişi silinmez.'}</p></div><button class="${state.unlockAllV651?'pastel-peach':'primary'}" onclick="setUnlockAllV651(${state.unlockAllV651?'false':'true'})">${state.unlockAllV651?'Kapa':'Aç'}</button></div>`;anchor.after(box);
   }
 
   window.__v651GlobalWrongSelected=false;
