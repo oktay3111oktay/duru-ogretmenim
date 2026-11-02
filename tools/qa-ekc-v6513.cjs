@@ -41,6 +41,9 @@ const assert = (ok, message) => {if (!ok) throw new Error(message)};
     const stateBefore = JSON.parse(localStorage.getItem('duru_teacher_reset_v6_5'));
     const counts = Object.fromEntries(['Matematik','Türkçe','Fen Bilimleri'].map(c => [c, (topics[c] || []).reduce((n,_,i) => n + p.school(c,i).length, 0)]));
     const turkish = p.school('Türkçe',0);
+    const turkishDeep = p.school('Türkçe',1);
+    const turkishPoem = p.school('Türkçe',13);
+    const turkishPractice = p.school('Türkçe',2);
     const fen = p.school('Fen Bilimleri',0);
     const badgeSvg = badgeMakeSVG({title:'Çizimli kanatlı kedi',promptText:'kanatlı kedi',primary:'#79aef7',edge:'#ffd77b',
       strokes:[{color:'#233454',width:4,points:[[10,10],[30,30],[50,12]]}]});
@@ -55,7 +58,11 @@ const assert = (ok, message) => {if (!ok) throw new Error(message)};
     parentView();
     const button = [...document.querySelectorAll('button')].find(b => b.textContent.includes('İlerleme'));
     button?.click();
-    return {stateBefore, counts, turkishNoFalseSource: turkish.every(q => q.privateSource === null && !q.prompt.includes('Okul çalışma kitabındaki')),
+    return {stateBefore, counts,
+      turkishSourced: turkish.every(q => q.privateSource?.sourceId === 'turkish_eck_1') &&
+        turkishDeep.every(q => q.privateSource?.sourceId === 'turkish_deep_eck') &&
+        turkishPoem.every(q => q.privateSource?.sourceId === 'turkish_eck_2'),
+      turkishPracticeUnattributed: turkishPractice.every(q => q.privateSource === null && !q.prompt.includes('Okul çalışma kitabındaki')),
       fenPages: fen.map(q => q.privateSource.page), pending: pending.map(q => q.id),
       oldTurkish: oldTurkish && {prompt: oldTurkish.prompt, source: oldTurkish.privateSource}, blockedProgress, futureTopicSeeded,
       progress: window.__DURU_PROGRESS_V6513_TEST__.progress(), hasButton: !!button,
@@ -66,7 +73,7 @@ const assert = (ok, message) => {if (!ok) throw new Error(message)};
   for (const key of ['points','done','scores','mistakes','history','badges','badgeDesigns','collection','days','custom'])
     assert(JSON.stringify(before.stateBefore[key]) === JSON.stringify(original[key]), `Öğrenci kaydı değişti: ${key}`);
   assert(JSON.stringify(before.counts) === JSON.stringify({Matematik:230,Türkçe:240,'Fen Bilimleri':40}), 'Soru sayıları');
-  assert(before.turkishNoFalseSource, 'Türkçe yanlış kaynak atfı devam ediyor');
+  assert(before.turkishSourced && before.turkishPracticeUnattributed, 'Türkçe kaynak/pekiştirme ayrımı yanlış');
   assert(before.fenPages.every(p => p === 3 || p === 4), 'Fen 0 testinde deney/ödev sayfası bağlantısı var');
   assert(before.pending.length === 10, 'Tamamlanmış Fen testinin yeni soruları GTT havuzunda değil');
   assert(before.oldTurkish?.source === null && before.oldTurkish.prompt === 'Bir metnin konusu nedir?', 'Eski Türkçe GTT kaynak atfı temizlenmedi');
@@ -78,7 +85,7 @@ const assert = (ok, message) => {if (!ok) throw new Error(message)};
   assert(before.badgeSvgOkay, 'Rozet çizimi SVG içinde korunmadı');
   assert(before.width <= before.innerWidth + 1, '390 pikselde yatay taşma');
   const images = [];
-  for (const [source, sourcePage] of [['science_eck',3],['math_eck',26],['turkish_eck_1',7],['fenomen_1_p1',null]]) {
+  for (const [source, sourcePage] of [['science_eck',3],['math_eck',26],['turkish_eck_1',7],['turkish_eck_2',6],['turkish_deep_eck',90],['fenomen_1_p1',null]]) {
     await page.evaluate(([id,p]) => openPrivateSourceV649(id,p), [source,sourcePage]);
     await page.waitForFunction(() => document.querySelector('.duru-private-modal.open img')?.naturalWidth > 0, undefined, {timeout:20000});
     images.push(await page.locator('.duru-private-modal.open img').evaluate(img => ({src:img.src,width:img.naturalWidth})));

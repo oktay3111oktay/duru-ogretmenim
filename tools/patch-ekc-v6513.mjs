@@ -175,7 +175,57 @@ for (const [topic, rows] of Object.entries(mathReplacements)) for (const [index,
   };
 }
 
+const turkishReplacements = {
+  0: {sourceId:'turkish_eck_1', label:'Türkçe EKÇ 1', rows:[
+    ['“Kentlerde Kaybedilen Çocukluk” metninde çocuklar okula neyle gidip geliyordu?', 'Servis aracıyla', ['Trenle', 'Bisikletle', 'Tekneyle'], 7],
+    ['Metindeki servis şoförü çocuklardan ne istiyordu?', 'Rahat durmalarını', ['Şarkı söylemelerini', 'Koşmalarını', 'Kitap almalarını'], 7],
+    ['Yazar, kentte büyüyen çocukların hangi ortamdan uzaklaştığını söylüyor?', 'Doğal oyun alanlarından', ['Okul binalarından', 'Servis araçlarından', 'Bilgisayarlardan'], 7],
+    ['Metinde geçmişteki çocukluk hangi yerlerle anlatılıyor?', 'Toprak sokaklar ve korularla', ['Alışveriş merkezleriyle', 'Otoparklarla', 'Servis duraklarıyla'], 8],
+    ['Yazar geçmişte çocukların ağaçlardan ne topladığını anlatıyor?', 'Ceviz', ['Elma', 'Portakal', 'Kiraz'], 8],
+    ['Metinde yazar hangi iki çocukluk yaşantısını karşılaştırıyor?', 'Geçmişteki ve günümüzdeki', ['İki farklı ülkenin', 'Yaz ve kış tatilindeki', 'Sabah ve akşamdaki'], 10],
+    ['Yazarın “özgürlüğün tuşlarda aranması” sözü hangi durumu eleştiriyor?', 'Açık havadaki oyunların yerini ekranın almasını', ['Çocukların yürüyüş yapmasını', 'Ağaçların büyümesini', 'Arkadaşların buluşmasını'], 10],
+    ['Metindeki bazı çocuklar servis penceresinden sarkarak ne yapmaya çalışıyor?', 'Çevredekilerin dikkatini çekmeye', ['Kitap okumaya', 'Resim yapmaya', 'Ağaç dikmeye'], 7],
+    ['“Kentlerde Kaybedilen Çocukluk” metninin ana düşüncesine en uygun cümle hangisidir?', 'Çocukların doğada özgürce oyun oynamaya ihtiyacı vardır', ['Çocuklar yalnızca alışveriş yapmalıdır', 'Bütün çocuklar servise binmelidir', 'Bilgisayar oyunları sokak oyunlarından her zaman iyidir'], 12],
+    ['Yazar 23 Nisan’da çocuklar için hangi konunun düşünülmesini öneriyor?', 'Doğal hayatın çocuklara geri verilmesini', ['Daha çok servis alınmasını', 'Daha çok alışveriş yapılmasını', 'Okulların kapatılmasını'], 8]
+  ]},
+  1: {sourceId:'turkish_deep_eck', label:'Türkçe Derin Öğrenme EKÇ', rows:[
+    ['“Kurabiye Hırsızı” öyküsünde kadın nerede bekliyordu?', 'Havaalanında', ['Okulda', 'Parkta', 'Kütüphanede'], 90],
+    ['Öyküde kadın dükkândan bir kitabın yanında ne aldı?', 'Bir paket kurabiye', ['Bir oyuncak', 'Bir resim', 'Bir kalem'], 90],
+    ['Kadın yanındaki adama neden kızdı?', 'Adamın kendi kurabiyelerini yediğini sandı', ['Adam uçağa bindiği için', 'Adam kitabı okuduğu için', 'Adam saatine baktığı için'], 90],
+    ['Öyküde adam son kurabiyeye ne yaptı?', 'İkiye böldü', ['Çantasına sakladı', 'Yere attı', 'Dükkâna geri verdi'], 90],
+    ['Kadın çantasını açınca ne gördü?', 'Kendi kurabiye paketini', ['Yeni bir kitap', 'Adamın saatini', 'Uçak biletini'], 90],
+    ['Kadının adam hakkında düşündükleri neden değişti?', 'Kurabiyelerin adama ait olduğunu anladı', ['Uçağı kaçırdı', 'Kitabını kaybetti', 'Adamla aynı koltuğa oturdu'], 90],
+    ['Öyküye göre kurabiyelerini paylaşan kişi kimdi?', 'Adam', ['Dükkân sahibi', 'Uçak görevlisi', 'Kadının arkadaşı'], 90],
+    ['Öykünün sonunda kadın ne hissetti?', 'Üzüntü ve pişmanlık', ['Yarış kazanmış gibi sevinç', 'Kitabını bitirmiş gibi rahatlık', 'Uçağa geç kalmış gibi telaş'], 90],
+    ['“Kurabiye Hırsızı” öyküsünden çıkarılabilecek öğüt hangisidir?', 'Birini suçlamadan önce durumu anlamaya çalış', ['Herkes kurabiye satın almalı', 'Havaalanında kitap okunmaz', 'Kurabiyeler daima paylaşılmamalı'], 90],
+    ['Öykünün altında “cüretkâr” sözcüğü nasıl açıklanır?', 'Düşüncesizce her işe atılan kişi', ['Çok yavaş yürüyen kişi', 'Resim yapan kişi', 'Uçak kullanan kişi'], 90]
+  ]},
+  13: {sourceId:'turkish_eck_2', label:'Türkçe EKÇ 2', rows:[
+    ['“Bir Kuşun Resmini Yapmak İçin” şiirinde önce ne çizilir?', 'Kapısı açık bir kafes', ['Bir ev', 'Bir deniz', 'Bir uçak'], 6],
+    ['Şiirde yapılan resim nereye asılır?', 'Bir ağaca', ['Bir kapıya', 'Bir arabaya', 'Bir sınıf panosuna'], 6],
+    ['Şiire göre kuşu beklerken nasıl davranılır?', 'Sessizce', ['Bağırarak', 'Koşarak', 'Alkışlayarak'], 6],
+    ['Şiire göre kuşun gelmesi bazen ne kadar sürebilir?', 'Uzun yıllar', ['Yalnız bir saniye', 'Daima bir gün', 'Tam bir hafta'], 6],
+    ['Şiirde kuş gelince önce ne beklenir?', 'Kafese girmesi', ['Uçakla gitmesi', 'Suda yüzmesi', 'Kitap okuması'], 6],
+    ['Şiirde kuş kafese girdikten sonra kafes tellerine ne yapılır?', 'Tek tek silinir', ['Daha kalın çizilir', 'Boyanır', 'Sayılır'], 7],
+    ['Kafes tellerinin yerine ne çizilir?', 'Bir ağaç', ['Bir duvar', 'Bir araba', 'Bir bina'], 7],
+    ['Şiire göre kuş ötmezse resim nasıl sayılır?', 'Kötü', ['Tamamlanmış', 'Çok renkli', 'En büyük'], 7],
+    ['Şiire göre kuş ötünce resme ne yapılabilir?', 'İmza atılabilir', ['Yırtılabilir', 'Saklanıp unutulabilir', 'Yeniden kafes çizilir'], 7],
+    ['Şiirde kuş hangi doğal yerlerden birindeki ağaca gelebilir?', 'Bahçe, koru veya orman', ['Havaalanı, liman veya gar', 'Sınıf, salon veya mutfak', 'Stadyum, mağaza veya otopark'], 6]
+  ]}
+};
+for (const [topic, source] of Object.entries(turkishReplacements)) {
+  const key = `Türkçe|${topic}`, bank = manifest.schoolQuestions[key];
+  const map = manifest.mappings[key].find(row => row.sourceId === source.sourceId);
+  if (map) map.pages = [...new Set([...map.pages, ...source.rows.map(row => row[3])])].sort((a,b) => a-b);
+  source.rows.forEach(([prompt, answer, wrong, page], index) => {
+    bank[index] = {c:'Türkçe', t:Number(topic), id:`SCHOOL-TR-NEW-${topic}-${index}`,
+      prompt, answer, options:[answer,...wrong], hint:'EKÇ metnindeki ilgili cümleyi yeniden oku.',
+      explain:`Doğru cevap: ${answer}.`,
+      privateSource:{sourceId:source.sourceId,page,label:`${source.label} · dosya s. ${page}`}, newInV6513:true};
+  });
+}
+
 html = html.replace('🏫 Sorunun kaynak sayfası', '📚 İlgili kaynak sayfası');
 const updated = html.replace(match[1], JSON.stringify(manifest));
 fs.writeFileSync(htmlPath, updated, 'utf8');
-console.log(`EKÇ paketi güncellendi: 230 matematik, 40 fen kaynak sorusu ve 240 Türkçe konu alıştırması`);
+console.log(`EKÇ paketi güncellendi: 230 matematik, 40 fen, 30 Türkçe kaynak sorusu ve 210 Türkçe konu alıştırması`);
