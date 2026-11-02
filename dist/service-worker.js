@@ -1,5 +1,5 @@
-const CACHE='duru-ogretmenim-v6512-clean-math-titles';
-const APP_SHELL=['./','./index.html','./manifest.webmanifest'];
+const CACHE='duru-ogretmenim-v6513-ekc-progress';
+const APP_SHELL=['./','./index.html','./veli-ilerleme-v6513.js','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
   self.skipWaiting();
