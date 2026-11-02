@@ -1,5 +1,5 @@
-const CACHE='duru-ogretmenim-v6516-completion-retry';
-const APP_SHELL=['./','./index.html','./veli-ilerleme-v6513.js?v=20261102-6515','./din-kulturu-yazili-2026.js?v=20261102-511','./manifest.webmanifest'];
+const CACHE='duru-ogretmenim-v6517-parent-cleanup';
+const APP_SHELL=['./','./index.html','./veli-ilerleme-v6513.js?v=20261103-6517','./din-kulturu-yazili-2026.js?v=20261102-511','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
   self.skipWaiting();

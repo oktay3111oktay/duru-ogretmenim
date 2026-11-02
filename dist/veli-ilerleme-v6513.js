@@ -17,7 +17,13 @@
       percent: count ? Math.round(100 * completed / count) : 0,
       testPercent: count ? Math.round(100 * testCompleted / count) : 0};
   });
+  function removeLegacyCourseDetails() {
+    document.querySelectorAll('#app > .card').forEach(card => {
+      if ([...card.querySelectorAll('.small')].some(node => /ilk deneme|kaydedilen hatalar/i.test(node.textContent || ''))) card.remove();
+    });
+  }
   function decorate() {
+    removeLegacyCourseDetails();
     const actions = document.querySelector('.teacher-parent-card .teacher-parent-actions');
     if (!actions || document.getElementById('veli-ilerleme-v6513')) return;
     const button = document.createElement('button');
@@ -30,8 +36,8 @@
     panel.id = 'veli-ilerleme-v6513';
     panel.className = 'card';
     panel.hidden = true;
-    panel.innerHTML = '<h2>📈 Ders ilerlemesi</h2><p>Ana oran, konu testi ve gerekiyorsa zorunlu Ekstra Testi biten konuları gösterir. Konu testlerindeki ilerleme ikinci çubukta ayrıca gösterilir.</p>' +
-      progress().map(row => `<div class="veli-progress-row"><div class="veli-progress-head"><strong>${row.icon} ${escapeHtml(row.name)}</strong><b>${row.percent}% tamamlandı</b></div><div class="veli-progress-track" role="progressbar" aria-label="${escapeHtml(row.name)} tamamlanma oranı" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${row.percent}"><span style="width:${row.percent}%"></span></div><div class="veli-progress-subhead"><span>Konu testleri</span><b>${row.testPercent}%</b></div><div class="veli-progress-track test-progress" role="progressbar" aria-label="${escapeHtml(row.name)} konu testi ilerlemesi" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${row.testPercent}"><span style="width:${row.testPercent}%"></span></div><small>${row.completed}/${row.count} konu tamamen tamamlandı · ${row.testCompleted}/${row.count} konu testi bitti · ${row.requiredExtra} zorunlu Ekstra Test bekliyor · ${row.gtt} konu için GTT tamamlandı · ${row.newQuestions} yeni kaynak sorusu GTT'de bekliyor</small></div>`).join('');
+    panel.innerHTML = '<h2>📈 Ders ilerlemesi</h2><ul class="veli-progress-help"><li>Ana oran, konu testi ve gerekiyorsa zorunlu Ekstra Testi biten konuları gösterir.</li><li>Konu testlerindeki ilerleme ikinci çubukta ayrıca gösterilir.</li></ul>' +
+      progress().map(row => `<div class="veli-progress-row"><div class="veli-progress-head"><strong>${row.icon} ${escapeHtml(row.name)}</strong><b>${row.percent}% tamamlandı</b></div><div class="veli-progress-track" role="progressbar" aria-label="${escapeHtml(row.name)} tamamlanma oranı" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${row.percent}"><span style="width:${row.percent}%"></span></div><div class="veli-progress-subhead"><span>Konu testleri</span><b>${row.testPercent}%</b></div><div class="veli-progress-track test-progress" role="progressbar" aria-label="${escapeHtml(row.name)} konu testi ilerlemesi" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${row.testPercent}"><span style="width:${row.testPercent}%"></span></div><ul class="veli-progress-details"><li>${row.completed}/${row.count} konu tamamen tamamlandı</li><li>${row.testCompleted}/${row.count} konu testi bitti</li><li>${row.requiredExtra} zorunlu Ekstra Test bekliyor</li><li>${row.gtt} konu için GTT tamamlandı</li><li>${row.newQuestions} yeni kaynak sorusu GTT'de bekliyor</li></ul></div>`).join('');
     actions.appendChild(button);
     actions.closest('.teacher-parent-card').after(panel);
     button.addEventListener('click', () => {
@@ -46,5 +52,5 @@
     return result;
   };
   if (typeof view !== 'undefined' && view === 'parent') decorate();
-  window.__DURU_PROGRESS_V6513_TEST__ = { progress, decorate };
+  window.__DURU_PROGRESS_V6513_TEST__ = { progress, decorate, removeLegacyCourseDetails };
 })();
