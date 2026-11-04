@@ -18,7 +18,7 @@ async function contextWithState(browser, seed) {
 (async () => {
   const browser = await chromium.launch({headless:true, executablePath:process.env.BROWSER_EXECUTABLE || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'});
   const errors = [];
-  const base = {points:221, done:{'Matematik|0':'2026-10-20T10:00:00.000Z'}, history:{'Matematik|1':[{date:'2026-10-21T10:00:00.000Z',score:90}]}, scores:{'Matematik|0':90,'Matematik|1':90}, mistakes:{}, collection:{'Mavi yıldız':true}, badges:['first'], badgeDesigns:{first:{color:'#112233',strokes:[]}}, startedTopicsV651:{}, requiredExtraV651:{}, migrations:{mathOfficialV67:true}};
+  const base = {points:221, done:{'Matematik|0':'2026-10-20T10:00:00.000Z'}, history:{'Matematik|1':[{date:'2026-10-21T10:00:00.000Z',score:90}]}, scores:{'Matematik|0':90,'Matematik|1':90}, mistakes:{}, collection:{'Mavi yıldız':true}, badges:['first'], badgeDesigns:{first:{color:'#112233',strokes:[]}}, startedTopicsV651:{}, requiredExtraV651:{}, completedSchoolTestsV6519:{'Matematik|0|0':'2026-10-20T11:00:00.000Z','Matematik|1|0':'2026-10-21T11:00:00.000Z'}, migrations:{mathOfficialV67:true}};
 
   const statusContext = await contextWithState(browser, base);
   const statusPage = await statusContext.newPage();
@@ -31,7 +31,7 @@ async function contextWithState(browser, seed) {
     const firstTwo=[...document.querySelectorAll('.course-topic .v651-topic-status')].slice(0,2).map(x=>x.textContent);
     const recovered=state.done['Matematik|1'],before={done:JSON.stringify(state.done),history:JSON.stringify(state.history)};
     const preserved={points:state.points,badges:JSON.stringify(state.badges),badgeDesigns:JSON.stringify(state.badgeDesigns),collection:JSON.stringify(state.collection)};
-    Object.keys(topics).forEach(c => (topics[c]||[]).forEach((_,i) => { state.done[c+'|'+i]='2026-10-22T10:00:00.000Z'; }));
+    Object.keys(topics).forEach(c => (topics[c]||[]).forEach((_,i) => { state.done[c+'|'+i]='2026-10-22T10:00:00.000Z'; for(let n=0;n<(window.__DURU_V651_TEST__?.schoolTestCount(c,i)||0);n++)state.completedSchoolTestsV6519[c+'|'+i+'|'+n]='2026-10-22T11:00:00.000Z'; }));
     state.requiredExtraV651={};persist();
     const coursesResult={};
     courses.forEach(([c]) => {

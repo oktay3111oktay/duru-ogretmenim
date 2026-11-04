@@ -14,6 +14,7 @@ const assert = (ok, message) => {if (!ok) throw new Error(message)};
     history: {'Fen Bilimleri|0': [{date: '2026-10-20', score: 85}]},
     badges: ['first'], badgeDesigns: {first: {color: '#112233', strokes: [{color: '#233454', width: 4, points: [[10,10],[30,30]]}]}},
     collection: {'Minik panda': true}, days: ['2026-10-20'], custom: [{title: 'Korunacak içerik'}],
+    completedSchoolTestsV6519: {'Fen Bilimleri|0|0':'2026-10-20T11:00:00.000Z','Türkçe|0|0':'2026-10-20T11:00:00.000Z'},
     wrongQuestionLogV651: [{id:'legacy-turkish-school',c:'Türkçe',t:0,kind:'school',
       prompt:'Okul çalışma kitabındaki “Oyun Durdu!” ile eşleşen beceriyi düşün. Bir metnin konusu nedir?',
       answer:'Ana olay', options:['Ana olay','Sayfa sayısı','Kitabın fiyatı','Yazarın yaşı'],
@@ -70,14 +71,14 @@ const assert = (ok, message) => {if (!ok) throw new Error(message)};
       badgeSvgOkay: badgeSvg.startsWith('<svg') && badgeSvg.includes('M10.0 10.0 L30.0 30.0 L50.0 12.0'),
       width: document.documentElement.scrollWidth, innerWidth};
   });
-  for (const key of ['points','done','scores','mistakes','history','badges','badgeDesigns','collection','days','custom'])
+  for (const key of ['points','done','scores','mistakes','history','badges','badgeDesigns','collection','days','custom','completedSchoolTestsV6519'])
     assert(JSON.stringify(before.stateBefore[key]) === JSON.stringify(original[key]), `Öğrenci kaydı değişti: ${key}`);
   assert(JSON.stringify(before.counts) === JSON.stringify({Matematik:230,Türkçe:240,'Fen Bilimleri':40}), 'Soru sayıları');
   assert(before.turkishSourced && before.turkishPracticeUnattributed, 'Türkçe kaynak/pekiştirme ayrımı yanlış');
   assert(before.fenPages.every(p => p === 3 || p === 4), 'Fen 0 testinde deney/ödev sayfası bağlantısı var');
   assert(before.pending.length === 10, 'Tamamlanmış Fen testinin yeni soruları GTT havuzunda değil');
   assert(before.oldTurkish?.source === null && before.oldTurkish.prompt === 'Bir metnin konusu nedir?', 'Eski Türkçe GTT kaynak atfı temizlenmedi');
-  assert(before.blockedProgress === 0, 'Zorunlu Ekstra Test beklerken konu tamamlanmış sayıldı');
+  assert(before.blockedProgress === 5, 'İsteğe bağlı Ekstra Test ilerlemeyi yanlışlıkla engelledi');
   assert(!before.futureTopicSeeded, 'Güncellemeden sonra tamamlanan konu gereksiz yere GTT’ye eklendi');
   assert(before.progress.find(x => x.name === 'Fen Bilimleri').percent === 5, 'Fen ilerleme oranı yanlış');
   assert(before.progress.find(x => x.name === 'Türkçe').percent === 4, 'Türkçe ilerleme oranı yanlış');

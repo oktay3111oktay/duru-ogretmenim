@@ -8,13 +8,14 @@ const assert = (ok, message) => { if (!ok) throw new Error(message); };
   const browser = await chromium.launch({headless:true, executablePath:process.env.BROWSER_EXECUTABLE || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'});
   const url = process.env.QA_URL || pathToFileURL(path.resolve(__dirname, '../dist/index.html')).href;
 
-  async function scenario(name, requiredExtraV651) {
+  async function scenario(name, completedSchoolTestsV6519) {
     const context = await browser.newContext({viewport:{width:390,height:844}});
     const seed = {
       points:137,
       done:{'Türkçe|0':true,'Türkçe|1':true,'Türkçe|2':true},
       startedTopicsV651:{'Türkçe|0':'2026-10-01','Türkçe|1':'2026-10-02','Türkçe|2':'2026-10-03'},
-      requiredExtraV651,
+      requiredExtraV651:{'Türkçe|0':{required:true},'Türkçe|1':{required:true},'Türkçe|2':{required:true}},
+      completedSchoolTestsV6519,
       badges:['first'], badgeDesigns:{first:{color:'#112233',strokes:[]}}
     };
     await context.addInitScript(value => {
@@ -46,20 +47,18 @@ const assert = (ok, message) => { if (!ok) throw new Error(message); };
     return {name,seed,result,errors};
   }
 
-  const normal = await scenario('Ekstra beklemiyor', {});
-  const pending = await scenario('Üç zorunlu Ekstra bekliyor', {
-    'Türkçe|0':{required:true},'Türkçe|1':{required:true},'Türkçe|2':{required:true}
-  });
+  const normal = await scenario('Okul testleri tamam', {'Türkçe|0|0':'2026-11-03','Türkçe|1|0':'2026-11-03'});
+  const pending = await scenario('İki Okul Testi bekliyor', {});
 
   assert(normal.result.row.completed===3 && normal.result.row.testCompleted===3 && normal.result.row.percent===13 && normal.result.row.testPercent===13, 'Normal Türkçe ilerlemesi %13 değil');
   assert(normal.result.header.includes('3/24 konu tamamlandı') && normal.result.statuses.every(text=>text==='✅ Konu tamamlandı'), 'Tamamlanan konu durumu yanlış');
-  assert(pending.result.row.completed===0 && pending.result.row.testCompleted===3 && pending.result.row.requiredExtra===3 && pending.result.row.percent===0 && pending.result.row.testPercent===13, 'Zorunlu Ekstra ayrımı yanlış');
-  assert(pending.result.header.includes('0/24 konu tamamlandı') && pending.result.header.includes('3/24 konu testi bitti') && pending.result.header.includes('3 zorunlu Ekstra bekliyor'), 'Türkçe üst özeti yanlış');
-  assert(pending.result.statuses.every(text=>text==='🔴 Konu testi bitti · Zorunlu Ekstra Test bekliyor'), 'Bekleyen konular tamamlandı görünüyor');
-  assert(pending.result.enabled.every(Boolean), 'Zorunlu Ekstra bekleyen kart çözüme kapatıldı');
-  assert(!pending.result.panelHidden && pending.result.panelText.includes('Konu testleri13%') && pending.result.panelText.includes('0/24 konu tamamen tamamlandı') && pending.result.panelText.includes('3/24 konu testi bitti'), 'Veli Paneli iki ilerleme türünü göstermiyor');
+  assert(pending.result.row.completed===1 && pending.result.row.testCompleted===3 && pending.result.row.schoolPending===2 && pending.result.row.percent===4 && pending.result.row.testPercent===13, 'Zorunlu Okul Testi ayrımı yanlış');
+  assert(pending.result.header.includes('1/24 konu tamamlandı') && pending.result.header.includes('3/24 konu testi bitti') && pending.result.header.includes('2 Okul Testi bekliyor'), 'Türkçe üst özeti yanlış');
+  assert(pending.result.statuses[0]==='🏫 Okul Testi bekliyor'&&pending.result.statuses[1]==='🏫 Okul Testi bekliyor'&&pending.result.statuses[2]==='✅ Konu tamamlandı', 'Okul Testi bekleyen konular yanlış görünüyor');
+  assert(pending.result.enabled.every(Boolean), 'Okul Testi bekleyen tamamlanmış kart çözüme kapatıldı');
+  assert(!pending.result.panelHidden && pending.result.panelText.includes('Konu testleri13%') && pending.result.panelText.includes('1/24 konu tamamen tamamlandı') && pending.result.panelText.includes('3/24 konu testi bitti') && pending.result.panelText.includes('2 Okul Testi bekliyor'), 'Veli Paneli Okul Testi ayrımını göstermiyor');
   assert(normal.result.legacyDetails===0 && pending.result.legacyDetails===0, 'Eski ilk deneme/hata ayrıntıları Veli Panelinde kaldı');
-  assert(normal.result.helpItems===2 && normal.result.detailLists===8 && normal.result.detailItems.every(count=>count===5), 'İlerleme açıklamaları madde madde ayrı satırlarda değil');
+  assert(normal.result.helpItems===3 && normal.result.detailLists===8 && normal.result.detailItems.every(count=>count===6), 'İlerleme açıklamaları madde madde ayrı satırlarda değil');
   for (const item of [normal,pending]) {
     for (const key of ['points','done','startedTopicsV651','requiredExtraV651','badges','badgeDesigns']) assert(JSON.stringify(item.seed[key])===JSON.stringify(item.result.stateAfter[key]), `Öğrenci kaydı değişti: ${item.name} / ${key}`);
     assert(item.result.width<=item.result.innerWidth+1, `390 pikselde yatay taşma: ${item.name}`);

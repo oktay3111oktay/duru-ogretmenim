@@ -4,16 +4,21 @@
   const escapeHtml = value => String(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[char]));
   const progress = () => courses.map(([name, icon]) => {
     const count = (topics[name] || []).length;
+    const api = window.__DURU_V651_TEST__;
     const testCompleted = Array.from({length: count}, (_, index) => index)
       .filter(index => !!state.done[name + '|' + index]).length;
     const completed = Array.from({length: count}, (_, index) => index)
-      .filter(index => !!state.done[name + '|' + index] && !state.requiredExtraV651?.[name + '|' + index]?.required).length;
-    const requiredExtra = Array.from({length: count}, (_, index) => index)
-      .filter(index => !!state.requiredExtraV651?.[name + '|' + index]?.required).length;
+      .filter(index => api?.topicReadyForNext ? api.topicReadyForNext(name, index) : !!state.done[name + '|' + index]).length;
+    const schoolRequired = Array.from({length: count}, (_, index) => api?.schoolTestCount?.(name, index) || 0)
+      .reduce((sum, value) => sum + value, 0);
+    const schoolCompleted = Array.from({length: count}, (_, index) => api?.schoolTestCount?.(name, index) || 0)
+      .reduce((sum, tests, index) => sum + Array.from({length: tests}, (_, testIndex) => api?.schoolTestDone?.(name, index, testIndex)).filter(Boolean).length, 0);
+    const schoolPending = Array.from({length: count}, (_, index) => api?.schoolTestCount?.(name, index) || 0)
+      .reduce((sum, tests, index) => sum + (state.done[name + '|' + index] ? Array.from({length: tests}, (_, testIndex) => api?.schoolTestDone?.(name, index, testIndex)).filter(done => !done).length : 0), 0);
     const gtt = Object.keys(state.generalPassed || {})
       .filter(key => key.startsWith(name + '|') && !!state.generalPassed[key]).length;
     const newQuestions = window.__DURU_V651_TEST__?.wrongPool(name).filter(item => item.newInV6513).length || 0;
-    return {name, icon, count, testCompleted, completed, requiredExtra, gtt, newQuestions,
+    return {name, icon, count, testCompleted, completed, schoolRequired, schoolCompleted, schoolPending, gtt, newQuestions,
       percent: count ? Math.round(100 * completed / count) : 0,
       testPercent: count ? Math.round(100 * testCompleted / count) : 0};
   });
@@ -36,8 +41,8 @@
     panel.id = 'veli-ilerleme-v6513';
     panel.className = 'card';
     panel.hidden = true;
-    panel.innerHTML = '<h2>📈 Ders ilerlemesi</h2><ul class="veli-progress-help"><li>Ana oran, konu testi ve gerekiyorsa zorunlu Ekstra Testi biten konuları gösterir.</li><li>Konu testlerindeki ilerleme ikinci çubukta ayrıca gösterilir.</li></ul>' +
-      progress().map(row => `<div class="veli-progress-row"><div class="veli-progress-head"><strong>${row.icon} ${escapeHtml(row.name)}</strong><b>${row.percent}% tamamlandı</b></div><div class="veli-progress-track" role="progressbar" aria-label="${escapeHtml(row.name)} tamamlanma oranı" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${row.percent}"><span style="width:${row.percent}%"></span></div><div class="veli-progress-subhead"><span>Konu testleri</span><b>${row.testPercent}%</b></div><div class="veli-progress-track test-progress" role="progressbar" aria-label="${escapeHtml(row.name)} konu testi ilerlemesi" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${row.testPercent}"><span style="width:${row.testPercent}%"></span></div><ul class="veli-progress-details"><li>${row.completed}/${row.count} konu tamamen tamamlandı</li><li>${row.testCompleted}/${row.count} konu testi bitti</li><li>${row.requiredExtra} zorunlu Ekstra Test bekliyor</li><li>${row.gtt} konu için GTT tamamlandı</li><li>${row.newQuestions} yeni kaynak sorusu GTT'de bekliyor</li></ul></div>`).join('');
+    panel.innerHTML = '<h2>📈 Ders ilerlemesi</h2><ul class="veli-progress-help"><li>Ana oran, Konu Testi ile varsa Okul Testi tamamlanan konuları gösterir.</li><li>Ekstra Testler ilerleme kilidini etkilemez.</li><li>Konu testlerindeki ilerleme ikinci çubukta ayrıca gösterilir.</li></ul>' +
+      progress().map(row => `<div class="veli-progress-row"><div class="veli-progress-head"><strong>${row.icon} ${escapeHtml(row.name)}</strong><b>${row.percent}% tamamlandı</b></div><div class="veli-progress-track" role="progressbar" aria-label="${escapeHtml(row.name)} tamamlanma oranı" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${row.percent}"><span style="width:${row.percent}%"></span></div><div class="veli-progress-subhead"><span>Konu testleri</span><b>${row.testPercent}%</b></div><div class="veli-progress-track test-progress" role="progressbar" aria-label="${escapeHtml(row.name)} konu testi ilerlemesi" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${row.testPercent}"><span style="width:${row.testPercent}%"></span></div><ul class="veli-progress-details"><li>${row.completed}/${row.count} konu tamamen tamamlandı</li><li>${row.testCompleted}/${row.count} konu testi bitti</li><li>${row.schoolCompleted}/${row.schoolRequired} zorunlu Okul Testi tamamlandı</li><li>${row.schoolPending} Okul Testi bekliyor</li><li>${row.gtt} konu için GTT tamamlandı</li><li>${row.newQuestions} yeni kaynak sorusu GTT'de bekliyor</li></ul></div>`).join('');
     actions.appendChild(button);
     actions.closest('.teacher-parent-card').after(panel);
     button.addEventListener('click', () => {

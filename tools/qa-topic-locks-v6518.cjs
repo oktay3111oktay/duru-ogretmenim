@@ -41,8 +41,10 @@ const assert = (ok, message) => { if (!ok) throw new Error(message); };
     });
     const before=JSON.stringify(state.startedTopicsV651);
     state.done['Türkçe|0']='2026-11-03T00:00:00.000Z';persist();openCourse('Türkçe');
+    const turkishPending=[...document.querySelectorAll('.fen-item .v651-topic-status')].slice(0,3).map(x=>x.textContent);
+    state.completedSchoolTestsV6519['Türkçe|0|0']='2026-11-03T01:00:00.000Z';persist();openCourse('Türkçe');
     const turkishAfter=[...document.querySelectorAll('.fen-item .v651-topic-status')].slice(0,3).map(x=>x.textContent);
-    return {rows,turkishAfter,startedPreserved:before===JSON.stringify(state.startedTopicsV651),points:state.points,badges:state.badges,width:document.documentElement.scrollWidth,innerWidth};
+    return {rows,turkishPending,turkishAfter,startedPreserved:before===JSON.stringify(state.startedTopicsV651),points:state.points,badges:state.badges,width:document.documentElement.scrollWidth,innerWidth};
   });
   for(const [course,row] of Object.entries(result.rows)){
     if(course==='Peygamberimizin Hayatı'){
@@ -53,7 +55,8 @@ const assert = (ok, message) => { if (!ok) throw new Error(message); };
     assert(row.second.status==='🔒 Kilitli'&&row.second.disabled&&!row.accessible[1], `${course}: başlanmış ikinci konu açık kaldı`);
     assert(row.third.status==='🔒 Kilitli'&&row.third.disabled&&!row.accessible[2], `${course}: başlanmış üçüncü konu açık kaldı`);
   }
-  assert(result.turkishAfter[0]==='✅ Konu tamamlandı'&&result.turkishAfter[1]==='📚 Çalışılıyor'&&result.turkishAfter[2]==='🔒 Kilitli', 'Türkçe sıralı açılma kuralı yanlış');
+  assert(result.turkishPending[0]==='🏫 Okul Testi bekliyor'&&result.turkishPending[1]==='🔒 Kilitli', 'Türkçe Okul Testi tamamlanmadan sonraki konu açıldı');
+  assert(result.turkishAfter[0]==='✅ Konu tamamlandı'&&result.turkishAfter[1]==='📚 Çalışılıyor'&&result.turkishAfter[2]==='🔒 Kilitli', 'Türkçe Konu ve Okul Testi sonrası sıralı açılma kuralı yanlış');
   assert(result.startedPreserved&&result.points===91&&JSON.stringify(result.badges)==='["first"]', 'Öğrenci kayıtları değişti');
   assert(result.width<=result.innerWidth+1, '390 piksel görünümde yatay taşma var');
   assert(!errors.length, 'Tarayıcı hataları: '+errors.join(' | '));

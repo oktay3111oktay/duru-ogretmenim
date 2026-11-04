@@ -30,7 +30,7 @@ const science = {
     ['Krater derinliğine misketin kütlesinin etkisini araştırırken neyi değiştirirsin?', 'Misketin kütlesini', ['Bırakma yüksekliğini', 'Unun rengini', 'Kabın yerini'], 6],
     ['Misket kütlesinin etkisini anlamak için hangi koşul aynı kalmalıdır?', 'Bırakma yüksekliği', ['Misketin kütlesi', 'Çukurun derinliği', 'Çukurun genişliği'], 6],
     ['Aynı deneyde farklı kütlede misketler kullanmanın amacı nedir?', 'Kütlenin krater üzerindeki etkisini karşılaştırmak', ['Misketleri renge göre dizmek', 'Unu saymak', 'Kabı süslemek'], 6],
-    ['Fen EKÇ’deki Ay evreleri modelinde köpük küre neyi temsil eder?', 'Ay’ı', ['Güneş’i', 'Dünya’yı', 'Bir krateri'], 8]
+    ['Ay yüzeyindeki kraterlerin büyüklüğü ve derinliği neye bağlı olarak değişebilir?', 'Gök taşının kütlesine ve çarpma hızına', ['Ay’ın her gece aynı saatte doğmasına', 'Dünya’daki mevsimlere', 'Güneş’in renginin değişmesine'], 6]
   ],
   2: [
     ['Fen EKÇ’deki Ay evreleri modelinde ışık kaynağı neyi temsil eder?', 'Güneş’i', ['Ay’ı', 'Dünya’yı', 'Krateri'], 8],
