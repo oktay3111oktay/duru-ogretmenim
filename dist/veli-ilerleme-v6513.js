@@ -5,6 +5,23 @@
   const progress = () => courses.map(([name, icon]) => {
     const count = (topics[name] || []).length;
     const api = window.__DURU_V651_TEST__;
+    const turkish = name === 'Türkçe' ? window.__DURU_TURKISH_V6520_TEST__ : null;
+    if (turkish) {
+      const indexes = Array.from({length: count}, (_, index) => index);
+      const testCompleted = indexes.filter(index => turkish.isDone(index)).length;
+      const completed = indexes.filter(index => turkish.fullyDone(index)).length;
+      const schoolRequired = indexes.reduce((sum, index) => sum + turkish.schoolParts(index).length, 0);
+      const schoolCompleted = indexes.reduce((sum, index) => sum + turkish.schoolDoneCount(index), 0);
+      const schoolPending = indexes.reduce((sum, index) => sum + (turkish.isDone(index) ? Math.max(0, turkish.schoolParts(index).length - turkish.schoolDoneCount(index)) : 0), 0);
+      const gtt = Object.keys(state.generalPassed || {}).filter(key => key.startsWith(name + '|') && !!state.generalPassed[key]).length;
+      const newQuestions = window.__DURU_V651_TEST__?.wrongPool(name).length || 0;
+      const legacyMebTotal = turkish.legacyTopics?.length || 0;
+      const legacyMebCompleted = Array.from({length: legacyMebTotal}, (_, index) => !!state.done[`${name}|${index}`]).filter(Boolean).length;
+      return {name, icon, count, testCompleted, completed, schoolRequired, schoolCompleted, schoolPending, gtt, newQuestions, legacyMebTotal, legacyMebCompleted,
+        percent: count ? Math.round(100 * completed / count) : 0,
+        testPercent: count ? Math.round(100 * testCompleted / count) : 0,
+        legacyMebPercent: legacyMebTotal ? Math.round(100 * legacyMebCompleted / legacyMebTotal) : 0};
+    }
     const testCompleted = Array.from({length: count}, (_, index) => index)
       .filter(index => !!state.done[name + '|' + index]).length;
     const completed = Array.from({length: count}, (_, index) => index)
@@ -41,8 +58,8 @@
     panel.id = 'veli-ilerleme-v6513';
     panel.className = 'card';
     panel.hidden = true;
-    panel.innerHTML = '<h2>📈 Ders ilerlemesi</h2><ul class="veli-progress-help"><li>Ana oran, Konu Testi ile varsa Okul Testi tamamlanan konuları gösterir.</li><li>Ekstra Testler ilerleme kilidini etkilemez.</li><li>Konu testlerindeki ilerleme ikinci çubukta ayrıca gösterilir.</li></ul>' +
-      progress().map(row => `<div class="veli-progress-row"><div class="veli-progress-head"><strong>${row.icon} ${escapeHtml(row.name)}</strong><b>${row.percent}% tamamlandı</b></div><div class="veli-progress-track" role="progressbar" aria-label="${escapeHtml(row.name)} tamamlanma oranı" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${row.percent}"><span style="width:${row.percent}%"></span></div><div class="veli-progress-subhead"><span>Konu testleri</span><b>${row.testPercent}%</b></div><div class="veli-progress-track test-progress" role="progressbar" aria-label="${escapeHtml(row.name)} konu testi ilerlemesi" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${row.testPercent}"><span style="width:${row.testPercent}%"></span></div><ul class="veli-progress-details"><li>${row.completed}/${row.count} konu tamamen tamamlandı</li><li>${row.testCompleted}/${row.count} konu testi bitti</li><li>${row.schoolCompleted}/${row.schoolRequired} zorunlu Okul Testi tamamlandı</li><li>${row.schoolPending} Okul Testi bekliyor</li><li>${row.gtt} konu için GTT tamamlandı</li><li>${row.newQuestions} yeni kaynak sorusu GTT'de bekliyor</li></ul></div>`).join('');
+    panel.innerHTML = '<h2>📈 Ders ilerlemesi</h2><ul class="veli-progress-help"><li>Ana oran, Konu Testi ile varsa Okul Testi tamamlanan konuları gösterir.</li><li>Ekstra Testler ilerleme kilidini etkilemez.</li><li>Konu testlerindeki ilerleme ikinci çubukta ayrıca gösterilir.</li><li>Türkçenin önceki MEB metin kayıtları, yeni konu yapısına karıştırılmadan ayrı bir çubukta korunur.</li></ul>' +
+      progress().map(row => `<div class="veli-progress-row"><div class="veli-progress-head"><strong>${row.icon} ${escapeHtml(row.name)}</strong><b>${row.percent}% tamamlandı</b></div><div class="veli-progress-track" role="progressbar" aria-label="${escapeHtml(row.name)} tamamlanma oranı" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${row.percent}"><span style="width:${row.percent}%"></span></div><div class="veli-progress-subhead"><span>Konu testleri</span><b>${row.testPercent}%</b></div><div class="veli-progress-track test-progress" role="progressbar" aria-label="${escapeHtml(row.name)} konu testi ilerlemesi" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${row.testPercent}"><span style="width:${row.testPercent}%"></span></div>${row.legacyMebTotal ? `<div class="veli-progress-subhead"><span>Önceki MEB metin kayıtları</span><b>${row.legacyMebPercent}%</b></div><div class="veli-progress-track test-progress" role="progressbar" aria-label="${escapeHtml(row.name)} önceki MEB metin ilerlemesi" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${row.legacyMebPercent}"><span style="width:${row.legacyMebPercent}%"></span></div>` : ''}<ul class="veli-progress-details"><li>${row.completed}/${row.count} konu tamamen tamamlandı</li><li>${row.testCompleted}/${row.count} konu testi bitti</li><li>${row.schoolCompleted}/${row.schoolRequired} zorunlu Okul Testi tamamlandı</li><li>${row.schoolPending} Okul Testi bekliyor</li><li>${row.gtt} konu için GTT tamamlandı</li><li>${row.newQuestions} yeni kaynak sorusu GTT'de bekliyor</li>${row.legacyMebTotal ? `<li>${row.legacyMebCompleted}/${row.legacyMebTotal} önceki MEB metin kaydı korundu</li>` : ''}</ul></div>`).join('');
     actions.appendChild(button);
     actions.closest('.teacher-parent-card').after(panel);
     button.addEventListener('click', () => {

@@ -8,14 +8,14 @@ const assert = (ok, message) => { if (!ok) throw new Error(message); };
   const browser = await chromium.launch({headless:true, executablePath:process.env.BROWSER_EXECUTABLE || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'});
   const url = process.env.QA_URL || pathToFileURL(path.resolve(__dirname, '../dist/index.html')).href;
 
-  async function scenario(name, completedSchoolTestsV6519) {
+  async function scenario(name, completeAllSchool) {
     const context = await browser.newContext({viewport:{width:390,height:844}});
     const seed = {
       points:137,
       done:{'Türkçe|0':true,'Türkçe|1':true,'Türkçe|2':true},
       startedTopicsV651:{'Türkçe|0':'2026-10-01','Türkçe|1':'2026-10-02','Türkçe|2':'2026-10-03'},
       requiredExtraV651:{'Türkçe|0':{required:true},'Türkçe|1':{required:true},'Türkçe|2':{required:true}},
-      completedSchoolTestsV6519,
+      completedSchoolTestsV6519:{},
       badges:['first'], badgeDesigns:{first:{color:'#112233',strokes:[]}}
     };
     await context.addInitScript(value => {
@@ -27,11 +27,16 @@ const assert = (ok, message) => { if (!ok) throw new Error(message); };
     const response = await page.goto(url, {waitUntil:'domcontentloaded',timeout:120000});
     if (url.startsWith('http')) assert(response?.ok(), 'Canlı uygulama açılmadı');
     await page.waitForFunction(() => !!window.__DURU_PROGRESS_V6513_TEST__, undefined, {timeout:60000});
-    const result = await page.evaluate(() => {
+    const result = await page.evaluate(completeAll => {
+      const api=window.__DURU_TURKISH_V6520_TEST__,ids=api.curriculum.slice(0,3).map(topic=>topic.id);
+      ids.forEach(id=>{state.turkishV6520.completed[id]='2026-11-03'});
+      const schoolIds=completeAll?ids:[ids[2]];
+      schoolIds.forEach((id,index)=>{const topicIndex=api.curriculum.findIndex(topic=>topic.id===id),parts=api.schoolParts(topicIndex);state.turkishV6520.schoolDone[id]=Object.fromEntries(parts.map((_,part)=>[part,'2026-11-03']));});
+      persist();
       openCourse('Türkçe');
-      const header = document.querySelector('.fen-header small')?.textContent || '';
-      const statuses = [...document.querySelectorAll('.fen-item .v651-topic-status')].slice(0,3).map(node => node.textContent);
-      const enabled = [...document.querySelectorAll('.fen-item')].slice(0,3).map(card => [...card.querySelectorAll('button')].filter(button => /Konuyu öğren|Konu testi|Ekstra Test/i.test(button.textContent)).every(button => !button.disabled));
+      const header = document.querySelector('.course-top-title small')?.textContent || '';
+      const statuses = [...document.querySelectorAll('.tr-topic-v6520 small')].slice(0,3).map(node => node.textContent);
+      const enabled = [...document.querySelectorAll('.tr-topic-v6520')].slice(0,3).map(card => [...card.querySelectorAll('button')].filter(button => /Konuyu öğren|Tekrar çalış|Konu testi/i.test(button.textContent)).every(button => !button.disabled));
       parentView();
       document.querySelector('[aria-controls="veli-ilerleme-v6513"]')?.click();
       const row = window.__DURU_PROGRESS_V6513_TEST__.progress().find(item => item.name === 'Türkçe');
@@ -42,23 +47,24 @@ const assert = (ok, message) => { if (!ok) throw new Error(message); };
       const detailItems = [...(panel?.querySelectorAll('.veli-progress-details') || [])].map(list => list.querySelectorAll(':scope > li').length);
       const stateAfter = {points:state.points,done:state.done,startedTopicsV651:state.startedTopicsV651,requiredExtraV651:state.requiredExtraV651,badges:state.badges,badgeDesigns:state.badgeDesigns};
       return {header,statuses,enabled,row,panelText:panel?.textContent||'',panelHidden:panel?.hidden,legacyDetails,helpItems,detailLists,detailItems,width:document.documentElement.scrollWidth,innerWidth,stateAfter};
-    });
+    }, completeAllSchool);
     await context.close();
     return {name,seed,result,errors};
   }
 
-  const normal = await scenario('Okul testleri tamam', {'Türkçe|0|0':'2026-11-03','Türkçe|1|0':'2026-11-03'});
-  const pending = await scenario('İki Okul Testi bekliyor', {});
+  const normal = await scenario('Okul testleri tamam', true);
+  const pending = await scenario('İki Okul Testi bekliyor', false);
 
-  assert(normal.result.row.completed===3 && normal.result.row.testCompleted===3 && normal.result.row.percent===13 && normal.result.row.testPercent===13, 'Normal Türkçe ilerlemesi %13 değil');
-  assert(normal.result.header.includes('3/24 konu tamamlandı') && normal.result.statuses.every(text=>text==='✅ Konu tamamlandı'), 'Tamamlanan konu durumu yanlış');
-  assert(pending.result.row.completed===1 && pending.result.row.testCompleted===3 && pending.result.row.schoolPending===2 && pending.result.row.percent===4 && pending.result.row.testPercent===13, 'Zorunlu Okul Testi ayrımı yanlış');
-  assert(pending.result.header.includes('1/24 konu tamamlandı') && pending.result.header.includes('3/24 konu testi bitti') && pending.result.header.includes('2 Okul Testi bekliyor'), 'Türkçe üst özeti yanlış');
+  assert(normal.result.row.completed===3 && normal.result.row.testCompleted===3 && normal.result.row.percent===14 && normal.result.row.testPercent===14, 'Normal Türkçe ilerlemesi %14 değil');
+  assert(normal.result.header.includes('3/22 konu tamamlandı') && normal.result.statuses.every(text=>text==='✅ Konu tamamlandı'), 'Tamamlanan konu durumu yanlış');
+  assert(pending.result.row.completed===1 && pending.result.row.testCompleted===3 && pending.result.row.schoolPending===2 && pending.result.row.percent===5 && pending.result.row.testPercent===14, 'Zorunlu Okul Testi ayrımı yanlış');
+  assert(pending.result.header.includes('1/22 konu tamamlandı'), 'Türkçe üst özeti zorunlu Okul Testini doğru ayırmıyor');
   assert(pending.result.statuses[0]==='🏫 Okul Testi bekliyor'&&pending.result.statuses[1]==='🏫 Okul Testi bekliyor'&&pending.result.statuses[2]==='✅ Konu tamamlandı', 'Okul Testi bekleyen konular yanlış görünüyor');
-  assert(pending.result.enabled.every(Boolean), 'Okul Testi bekleyen tamamlanmış kart çözüme kapatıldı');
-  assert(!pending.result.panelHidden && pending.result.panelText.includes('Konu testleri13%') && pending.result.panelText.includes('1/24 konu tamamen tamamlandı') && pending.result.panelText.includes('3/24 konu testi bitti') && pending.result.panelText.includes('2 Okul Testi bekliyor'), 'Veli Paneli Okul Testi ayrımını göstermiyor');
+  assert(pending.result.enabled.every(Boolean), `Tamamlanmış Türkçe konuları tekrar çalışmaya kapatıldı: ${JSON.stringify(pending.result.enabled)}`);
+  assert(!pending.result.panelHidden && pending.result.panelText.includes('Konu testleri14%') && pending.result.panelText.includes('1/22 konu tamamen tamamlandı') && pending.result.panelText.includes('3/22 konu testi bitti') && pending.result.panelText.includes('2 Okul Testi bekliyor'), 'Veli Paneli Okul Testi ayrımını göstermiyor');
   assert(normal.result.legacyDetails===0 && pending.result.legacyDetails===0, 'Eski ilk deneme/hata ayrıntıları Veli Panelinde kaldı');
-  assert(normal.result.helpItems===3 && normal.result.detailLists===8 && normal.result.detailItems.every(count=>count===6), 'İlerleme açıklamaları madde madde ayrı satırlarda değil');
+  assert(normal.result.helpItems===4 && normal.result.detailLists===8 && normal.result.detailItems[1]===7 && normal.result.detailItems.filter((_,index)=>index!==1).every(count=>count===6), 'İlerleme açıklamaları madde madde ayrı satırlarda değil');
+  assert(normal.result.row.legacyMebCompleted===3 && normal.result.row.legacyMebTotal===24 && normal.result.row.legacyMebPercent===13 && normal.result.panelText.includes('3/24 önceki MEB metin kaydı korundu'), 'Önceki Türkçe MEB ilerlemesi görünür biçimde korunmadı');
   for (const item of [normal,pending]) {
     for (const key of ['points','done','startedTopicsV651','requiredExtraV651','badges','badgeDesigns']) assert(JSON.stringify(item.seed[key])===JSON.stringify(item.result.stateAfter[key]), `Öğrenci kaydı değişti: ${item.name} / ${key}`);
     assert(item.result.width<=item.result.innerWidth+1, `390 pikselde yatay taşma: ${item.name}`);

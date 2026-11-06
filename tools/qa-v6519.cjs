@@ -119,7 +119,7 @@ function verifySources() {
 
   assert(result.before.first === '🏫 Okul Testi bekliyor', 'Konu Testinden sonra Okul Testi bekleme durumu görünmüyor');
   assert(result.before.second === '🔒 Kilitli' && !result.before.secondAccessible, 'Okul Testi bitmeden sonraki konu açıldı');
-  assert(result.before.schoolLabel === '🏫 Okul Testi' && !result.before.schoolLabel.includes('+2'), `Okul Testi +2 etiketi kaldırılmadı: ${result.before.schoolLabel}`);
+  assert(/^🏫 Okul Testi \(\d+\)$/.test(result.before.schoolLabel) && !result.before.schoolLabel.includes('+'), `Okul Testi sayısı etiketi yanlış: ${result.before.schoolLabel}`);
   assert(result.before.extraLabel === '✨ Ekstra test', 'Ekstra Test yanlışlıkla zorunlu görünüyor');
   assert(result.schoolStored && result.after.first === '✅ Konu tamamlandı' && result.after.secondAccessible, 'Okul Testi tamamlanınca sonraki konu açılmadı');
   assert(result.afterOne && result.reset === 0 && !result.afterTwo && result.mastery.streak === 2 && result.mastery.resolved, 'Yanlış-GTT iki ardışık doğru kuralı çalışmıyor');

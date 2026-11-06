@@ -30,6 +30,12 @@ const assert = (ok, message) => { if (!ok) throw new Error(message); };
     const rows={};
     courses.forEach(([c]) => {
       openCourse(c);
+      if(c==='Türkçe'){
+        const api=window.__DURU_TURKISH_V6520_TEST__,cards=[...document.querySelectorAll('.tr-topic-v6520')];
+        const inspect=index=>{const card=cards[index],buttons=[...(card?.querySelectorAll('button')||[])].filter(button=>/Konuyu öğren|Konu testi/i.test(button.textContent||''));return{status:card?.querySelector('small')?.textContent||'',disabled:buttons.length>0&&buttons.every(button=>button.disabled)}};
+        rows[c]={first:inspect(0),second:inspect(1),third:inspect(2),accessible:[0,1,2].map(i=>api.accessible(i))};
+        return;
+      }
       const cards=[...document.querySelectorAll('.course-topic,.fen-item,.rel-item,.teacher-lang-topic,.ger-topic,.eng-card')]
         .filter(card=>card.querySelector('.v651-topic-status'));
       const inspect = index => {
@@ -40,10 +46,11 @@ const assert = (ok, message) => { if (!ok) throw new Error(message); };
       rows[c]={first:inspect(0),second:inspect(1),third:inspect(2),accessible:[0,1,2].map(i=>topicAccessibleV651(c,i))};
     });
     const before=JSON.stringify(state.startedTopicsV651);
-    state.done['Türkçe|0']='2026-11-03T00:00:00.000Z';persist();openCourse('Türkçe');
-    const turkishPending=[...document.querySelectorAll('.fen-item .v651-topic-status')].slice(0,3).map(x=>x.textContent);
-    state.completedSchoolTestsV6519['Türkçe|0|0']='2026-11-03T01:00:00.000Z';persist();openCourse('Türkçe');
-    const turkishAfter=[...document.querySelectorAll('.fen-item .v651-topic-status')].slice(0,3).map(x=>x.textContent);
+    const trApi=window.__DURU_TURKISH_V6520_TEST__,firstId=trApi.curriculum[0].id;
+    state.turkishV6520.completed[firstId]='2026-11-03T00:00:00.000Z';persist();openCourse('Türkçe');
+    const turkishPending=[...document.querySelectorAll('.tr-topic-v6520 small')].slice(0,3).map(x=>x.textContent);
+    state.turkishV6520.schoolDone[firstId]={0:'2026-11-03T01:00:00.000Z'};persist();openCourse('Türkçe');
+    const turkishAfter=[...document.querySelectorAll('.tr-topic-v6520 small')].slice(0,3).map(x=>x.textContent);
     return {rows,turkishPending,turkishAfter,startedPreserved:before===JSON.stringify(state.startedTopicsV651),points:state.points,badges:state.badges,width:document.documentElement.scrollWidth,innerWidth};
   });
   for(const [course,row] of Object.entries(result.rows)){
@@ -56,7 +63,7 @@ const assert = (ok, message) => { if (!ok) throw new Error(message); };
     assert(row.third.status==='🔒 Kilitli'&&row.third.disabled&&!row.accessible[2], `${course}: başlanmış üçüncü konu açık kaldı`);
   }
   assert(result.turkishPending[0]==='🏫 Okul Testi bekliyor'&&result.turkishPending[1]==='🔒 Kilitli', 'Türkçe Okul Testi tamamlanmadan sonraki konu açıldı');
-  assert(result.turkishAfter[0]==='✅ Konu tamamlandı'&&result.turkishAfter[1]==='📚 Çalışılıyor'&&result.turkishAfter[2]==='🔒 Kilitli', 'Türkçe Konu ve Okul Testi sonrası sıralı açılma kuralı yanlış');
+  assert(result.turkishAfter[0]==='✅ Konu tamamlandı'&&result.turkishAfter[1]==='📖 Öğrenmeye hazır'&&result.turkishAfter[2]==='🔒 Kilitli', 'Türkçe Konu ve Okul Testi sonrası sıralı açılma kuralı yanlış');
   assert(result.startedPreserved&&result.points===91&&JSON.stringify(result.badges)==='["first"]', 'Öğrenci kayıtları değişti');
   assert(result.width<=result.innerWidth+1, '390 piksel görünümde yatay taşma var');
   assert(!errors.length, 'Tarayıcı hataları: '+errors.join(' | '));
