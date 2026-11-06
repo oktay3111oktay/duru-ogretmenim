@@ -107,11 +107,19 @@
     return schoolParts(index).filter((_, n) => !!done[n]).length;
   }
   function fullyDone(index) { return isDone(index) && schoolComplete(index); }
+  function groupIndexes(group) {
+    return curriculum.map((topic, index) => topic.group === group ? index : -1).filter(index => index >= 0);
+  }
+  function groupPosition(index) {
+    const topic = item(index), indexes = topic ? groupIndexes(topic.group) : [];
+    return { indexes, position: indexes.indexOf(Number(index)) };
+  }
   function accessible(index) {
     index = Number(index);
     if (!Number.isInteger(index) || !item(index)) return false;
     if (state.unlockAllV651 === true || isDone(index)) return true;
-    return index === 0 || fullyDone(index - 1);
+    const { indexes, position } = groupPosition(index);
+    return position === 0 || (position > 0 && fullyDone(indexes[position - 1]));
   }
   function markStarted(index) {
     const id = topicId(index);
@@ -135,12 +143,14 @@
     const completed = curriculum.filter((_, i) => fullyDone(i)).length;
     let group = '';
     const cards = curriculum.map((topic, index) => {
-      const nextGroup = topic.group !== group ? `<h2 class="tr-group-v6520">${esc(topic.group)}</h2>` : '';
+      const { indexes, position } = groupPosition(index);
+      const groupCompleted = indexes.filter(fullyDone).length;
+      const nextGroup = topic.group !== group ? `<h2 class="tr-group-v6520"><span>${esc(topic.group)}</span><small>${groupCompleted}/${indexes.length} konu tamamlandı</small></h2>` : '';
       group = topic.group;
       const locked = !accessible(index), normalDone = isDone(index), parts = schoolParts(index);
-      return `${nextGroup}<section class="course-topic tr-topic-v6520 ${locked ? 'course-locked' : ''}" data-topic-id="${esc(topic.id)}"><div class="course-topic-head"><span class="course-number">${index + 1}</span><div><h2>${esc(topic.title)}</h2><small>${status(index)}</small></div></div><div class="course-actions"><button class="${locked ? '' : 'primary'}" ${locked ? 'disabled' : ''} onclick="lesson(${index},0)">${normalDone ? '↻ Tekrar çalış' : '📖 Konuyu öğren'}</button><button ${locked ? 'disabled' : ''} onclick="startQuiz('Türkçe',${index},'normal')">📝 Konu testi</button><button ${!normalDone ? 'disabled' : ''} onclick="startQuiz('Türkçe',${index},'extra')">✨ Ekstra test</button>${parts.length ? `<button ${!normalDone ? 'disabled' : ''} onclick="startTurkishSchoolV6520(${index})">${schoolLabel(index)}</button>` : ''}</div></section>`;
+      return `${nextGroup}<section class="course-topic tr-topic-v6520 ${locked ? 'course-locked' : ''}" data-topic-id="${esc(topic.id)}"><div class="course-topic-head"><span class="course-number">${position + 1}</span><div><h2>${esc(topic.title)}</h2><small>${status(index)}</small></div></div><div class="course-actions"><button class="${locked ? '' : 'primary'}" ${locked ? 'disabled' : ''} onclick="lesson(${index},0)">${normalDone ? '↻ Tekrar çalış' : '📖 Konuyu öğren'}</button><button ${locked ? 'disabled' : ''} onclick="startQuiz('Türkçe',${index},'normal')">📝 Konu testi</button><button ${!normalDone ? 'disabled' : ''} onclick="startQuiz('Türkçe',${index},'extra')">✨ Ekstra test</button>${parts.length ? `<button ${!normalDone ? 'disabled' : ''} onclick="startTurkishSchoolV6520(${index})">${schoolLabel(index)}</button>` : ''}</div></section>`;
     }).join('');
-    return `<div class="course-screen tr-course-v6520"><div class="course-top"><button class="home-red" onclick="home()" aria-label="Ana sayfa">⌂</button><div class="course-top-title"><b>📚 Türkçe</b><small>${completed}/${curriculum.length} konu tamamlandı</small></div><div class="lesson-top-right"><b>⭐ ${state.points}</b><button onclick="toggleTheme()" aria-label="Tema değiştir">☀️/🌙</button></div></div><div class="course-summary"><b>Kaynak sırası</b><span>İELEV Kaynakları → İELEV Derin Öğrenme → MEB Kaynakları</span></div>${pendingNotice()}<div class="course-list">${cards}</div></div>`;
+    return `<div class="course-screen tr-course-v6520"><div class="course-top"><button class="home-red" onclick="home()" aria-label="Ana sayfa">⌂</button><div class="course-top-title"><b>📚 Türkçe</b><small>${completed}/${curriculum.length} konu tamamlandı</small></div><div class="lesson-top-right"><b>⭐ ${state.points}</b><button onclick="toggleTheme()" aria-label="Tema değiştir">☀️/🌙</button></div></div><div class="course-summary"><b>Üç bağımsız kaynak dersi</b><span>Her grubun ilk konusu açıktır. Sonraki konu yalnızca kendi grubundaki önceki Konu Testi ve varsa bütün Okul Testleri tamamlanınca açılır.</span></div>${pendingNotice()}<div class="course-list">${cards}</div></div>`;
   }
 
   function openSourcePage(url, label) {
@@ -233,6 +243,6 @@
     persist(); return result;
   };
 
-  window.__DURU_TURKISH_V6520_TEST__ = { curriculum, legacyTopics, oldTopics, item, indexById, isDone, schoolParts, schoolComplete, schoolDoneCount, fullyDone, accessible, courseMarkup, lessonMarkup, uniqueQuestions };
+  window.__DURU_TURKISH_V6520_TEST__ = { curriculum, legacyTopics, oldTopics, item, indexById, isDone, schoolParts, schoolComplete, schoolDoneCount, fullyDone, groupIndexes, groupPosition, accessible, courseMarkup, lessonMarkup, uniqueQuestions };
   if (view === 'course' && course === COURSE) openCourse(COURSE);
 })();

@@ -71,32 +71,35 @@ async function contextWithState(browser, seed) {
   assert(completedRetry.leftAt===1&&completedRetry.resumedAt===1, 'Tamamlanmış test tekrarı kaldığı sorudan sürmedi');
   assert(completedRetry.firstId===completedRetry.resumedId, 'Tamamlanmış test tekrarı yerine yeni test açıldı');
   assert(!completedRetry.afterExit.notice&&!completedRetry.afterExit.active&&completedRetry.afterExit.optional.includes('normal|Matematik|0'), 'Tamamlanmış test tekrarı ana sayfayı zorunlu duraklatma uyarısıyla kilitledi');
+  await retryPage.reload({waitUntil:'domcontentloaded',timeout:120000});
+  await retryPage.waitForFunction(() => !!window.__DURU_V6521_TEST_FLOW__, undefined, {timeout:60000});
+  const completedReload=await retryPage.evaluate(()=>({view,active:!!localStorage.getItem('duru_teacher_active_test_v617'),notice:!!document.getElementById('paused-test-v617'),optional:Object.keys(state.optionalRetrySessionsV6516)}));
+  assert(completedReload.view==='home'&&!completedReload.active&&!completedReload.notice&&completedReload.optional.includes('normal|Matematik|0'),'Tamamlanmış tekrar yeniden açılışta zorla gösterildi');
   await retryContext.close();
 
   const firstContext = await contextWithState(browser, base);
   const firstPage = await firstContext.newPage();
   firstPage.on('pageerror', e => errors.push('first: '+e.message));
   await firstPage.goto(url, {waitUntil:'domcontentloaded',timeout:120000});
-  await firstPage.waitForFunction(() => !!window.__DURU_V6516_TEST__, undefined, {timeout:60000});
+  await firstPage.waitForFunction(() => !!window.__DURU_V6521_TEST_FLOW__, undefined, {timeout:60000});
   const firstTime = await firstPage.evaluate(() => {
     startQuiz('Matematik',2,'normal');
     exitTestV617();
     return {notice:document.getElementById('paused-test-v617')?.textContent||'',active:!!localStorage.getItem('duru_teacher_active_test_v617'),optional:Object.keys(state.optionalRetrySessionsV6516)};
   });
-  assert(firstTime.active&&/Şimdi devam et/.test(firstTime.notice), 'İlk kez yapılan yarım konu testi ana sayfada Şimdi devam et göstermedi');
-  assert(!firstTime.optional.includes('normal|Matematik|2'), 'İlk konu testi yanlışlıkla isteğe bağlı tekrar sayıldı');
+  assert(!firstTime.active&&!firstTime.notice&&firstTime.optional.includes('normal|Matematik|2'), 'İlk kez yapılan yarım konu testi ana sayfayı engellemeye devam ediyor');
   await firstContext.close();
 
   const extraFirstContext = await contextWithState(browser, base);
   const extraFirstPage = await extraFirstContext.newPage();
   extraFirstPage.on('pageerror', e => errors.push('extra-first: '+e.message));
   await extraFirstPage.goto(url, {waitUntil:'domcontentloaded',timeout:120000});
-  await extraFirstPage.waitForFunction(() => !!window.__DURU_V6516_TEST__, undefined, {timeout:60000});
+  await extraFirstPage.waitForFunction(() => !!window.__DURU_V6521_TEST_FLOW__, undefined, {timeout:60000});
   const extraFirst = await extraFirstPage.evaluate(() => {
     startQuiz('Matematik',0,'extra');exitTestV617();
-    return {notice:document.getElementById('paused-test-v617')?.textContent||'',active:!!localStorage.getItem('duru_teacher_active_test_v617')};
+    return {notice:document.getElementById('paused-test-v617')?.textContent||'',active:!!localStorage.getItem('duru_teacher_active_test_v617'),optional:Object.keys(state.optionalRetrySessionsV6516)};
   });
-  assert(extraFirst.active&&/Şimdi devam et/.test(extraFirst.notice), 'İlk kez yapılan yarım Ekstra Test ana sayfada Şimdi devam et göstermedi');
+  assert(!extraFirst.active&&!extraFirst.notice&&extraFirst.optional.includes('extra|Matematik|0'), 'İlk kez yapılan yarım Ekstra Test ana sayfayı engellemeye devam ediyor');
   await extraFirstContext.close();
 
   const extraRetryContext = await contextWithState(browser, {...base, completedExtraTestsV6516:{'Matematik|0':'2026-10-25T10:00:00.000Z'}});
@@ -114,6 +117,6 @@ async function contextWithState(browser, seed) {
   await extraRetryContext.close();
 
   assert(!errors.length, 'Tarayıcı hataları: '+errors.join(' | '));
-  console.log(JSON.stringify({url,statusResult,completedRetry,firstTime,extraFirst,extraRetry,errors},null,2));
+  console.log(JSON.stringify({url,statusResult,completedRetry,completedReload,firstTime,extraFirst,extraRetry,errors},null,2));
   await browser.close();
 })().catch(error => { console.error(error.stack||error); process.exitCode=1; });
