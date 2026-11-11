@@ -1,4 +1,4 @@
-/* V6.52.1: Duraklatılan testler ana sayfayı engellemez; aynı test yeniden açıldığında kaldığı yerden sürer. */
+/* V6.52.2: Duraklatılan testler ana sayfayı engellemez; kaynak dersi ve tekrar türü güvenle eşleştirilir. */
 (() => {
   'use strict';
 
@@ -15,16 +15,31 @@
   }
   function info(record) {
     const first = record?.session?.qs?.[0] || {};
-    const courseId = String(record?.courseId || record?.course || first.sourceCourseId || first.c || '');
-    const topicId = Number(record?.topicId ?? record?.topic ?? first.sourceTopicId ?? first.t ?? 0);
     const kind = String(record?.testKind || record?.session?.kind || 'normal');
+    const questionCourses = [...new Set((record?.session?.qs || [])
+      .map(question => String(question?.sourceCourseId || question?.c || '').trim())
+      .filter(name => name && (name === 'GTT Genel' || topics?.[name])))];
+    const globalWrongGtt = kind === 'repeat' && record?.session?._wrongOnlyV651 === true
+      && record?.session?._wrongScopeV651 === '';
+    const courseId = globalWrongGtt
+      ? 'GTT Genel'
+      : questionCourses.length === 1
+        ? questionCourses[0]
+        : questionCourses.length > 1
+          ? 'GTT Genel'
+          : String(record?.courseId || record?.course || first.sourceCourseId || first.c || '');
+    const topicId = Number(record?.topicId ?? record?.topic ?? first.sourceTopicId ?? first.t ?? 0);
     const sourceKeys = [...new Set((record?.sourceKeys || record?.session?.keys || []).map(String))].sort();
-    return { courseId, topicId, kind, sourceKeys };
+    const repeatType = kind === 'repeat'
+      ? record?.session?._wrongOnlyV651 ? 'wrong-gtt' : 'scheduled-repeat'
+      : '';
+    return { courseId, topicId, kind, sourceKeys, repeatType };
   }
   function pauseKey(record) {
     const meta = info(record);
+    const repeatSuffix = meta.repeatType ? `|${meta.repeatType}` : '';
     const suffix = ['normal', 'extra', 'school'].includes(meta.kind) ? '' : `|${meta.sourceKeys.join(',')}`;
-    return `${meta.kind}|${meta.courseId}|${meta.topicId}${suffix}`;
+    return `${meta.kind}|${meta.courseId}|${meta.topicId}${repeatSuffix}${suffix}`;
   }
   function trimPaused() {
     const rows = Object.entries(state.optionalRetrySessionsV6516);
@@ -78,15 +93,16 @@
       .filter(([, record]) => record?.session?.qs?.length)
       .sort((a, b) => String(b[1]?.pausedAtV6521 || b[1]?.updatedAt || '').localeCompare(String(a[1]?.pausedAtV6521 || a[1]?.updatedAt || '')));
   }
-  function matches(record, courseId, topicId, kind, sourceKey = '') {
+  function matches(record, courseId, topicId, kind, sourceKey = '', repeatType = '') {
     const meta = info(record);
     if (kind && meta.kind !== kind) return false;
     if (courseId && meta.courseId !== courseId) return false;
     if (Number.isInteger(Number(topicId)) && meta.topicId !== Number(topicId)) return false;
+    if (repeatType && meta.repeatType !== repeatType) return false;
     return !sourceKey || meta.sourceKeys.includes(String(sourceKey));
   }
-  function resumeMatch(courseId, topicId, kind, sourceKey = '') {
-    const found = pausedEntries().find(([, record]) => matches(record, courseId, topicId, kind, sourceKey));
+  function resumeMatch(courseId, topicId, kind, sourceKey = '', repeatType = '') {
+    const found = pausedEntries().find(([, record]) => matches(record, courseId, topicId, kind, sourceKey, repeatType));
     if (!found) return false;
     const [key, record] = found;
     delete state.optionalRetrySessionsV6516[key];
@@ -94,14 +110,14 @@
     persist();
     return resumeSavedTestV617();
   }
-  function resumeForStart(courseId, topicId, kind, sourceKey = '') {
+  function resumeForStart(courseId, topicId, kind, sourceKey = '', repeatType = '') {
     const active = readActive();
     if (active) {
-      if (matches(active, courseId, topicId, kind, sourceKey)) return resumeSavedTestV617();
+      if (matches(active, courseId, topicId, kind, sourceKey, repeatType)) return resumeSavedTestV617();
       stashPending();
       stashActive();
     }
-    return resumeMatch(courseId, topicId, kind, sourceKey);
+    return resumeMatch(courseId, topicId, kind, sourceKey, repeatType);
   }
 
   const homeBefore = window.home;
@@ -163,7 +179,7 @@
   if (typeof window.startWrongGttV651 === 'function') {
     const wrongBefore = window.startWrongGttV651;
     window.startWrongGttV651 = function(scope = '') {
-      if (resumeForStart(scope || 'GTT Genel', undefined, 'repeat')) return true;
+      if (resumeForStart(scope || 'GTT Genel', undefined, 'repeat', '', 'wrong-gtt')) return true;
       return wrongBefore.apply(this, arguments);
     };
   }
@@ -171,7 +187,7 @@
     const repeatBefore = window.repeatStart;
     window.repeatStart = function(key, days) {
       const split = String(key).lastIndexOf('|'), c = split > 0 ? String(key).slice(0, split) : '', t = split > 0 ? Number(String(key).slice(split + 1)) : 0;
-      if (resumeForStart(c, t, 'repeat', key)) return true;
+      if (resumeForStart(c, t, 'repeat', key, 'scheduled-repeat')) return true;
       return repeatBefore.apply(this, arguments);
     };
   }

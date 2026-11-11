@@ -1,5 +1,5 @@
-const CACHE='duru-ogretmenim-v6521-independent-turkish-nonblocking-tests';
-const APP_SHELL=['./','./index.html','./veli-ilerleme-v6513.js?v=20261106-6521','./fenomen-content-v6520.js?v=20261106-6521','./daily-study-v6519.js?v=20261106-6521','./turkish-content-v6520.js?v=20261106-6521','./turkish-upgrade-v6520.js?v=20261106-6521','./test-flow-v6521.js?v=20261106-6521','./din-kulturu-yazili-2026.js?v=20261102-511','./manifest.webmanifest'];
+const CACHE='duru-ogretmenim-v6522-gtt-source-integrity';
+const APP_SHELL=['./','./index.html','./veli-ilerleme-v6513.js?v=20261106-6521','./fenomen-content-v6520.js?v=20261106-6521','./daily-study-v6519.js?v=20261106-6521','./turkish-content-v6520.js?v=20261106-6521','./turkish-upgrade-v6520.js?v=20261106-6521','./test-flow-v6521.js?v=20261111-6522','./gtt-integrity-v6522.js?v=20261111-6522','./din-kulturu-yazili-2026.js?v=20261102-511','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
   self.skipWaiting();
