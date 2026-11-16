@@ -1,4 +1,4 @@
-/* V6.53.0: Gunluk calisma temelli Korebe odulleri. */
+/* V6.53.1: Gunluk calisma temelli Korebe odulleri. */
 (() => {
   'use strict';
 
@@ -145,7 +145,7 @@
 
   function homeMarkup() {
     const reward = ensureReward(false), progress = progressValue(reward), percent = Math.max(0, Math.min(100, progress));
-    return `<div class="korebe-visual-v6530"><img src="${IMAGE}" alt="Korebe oynayan neseli cocuklar"></div><div class="korebe-copy-v6530"><h2>🎭 Ödüllerim</h2><div class="korebe-count-v6530"><strong>${reward.rights}</strong><span>Körebe hakkı</span></div><div class="korebe-progress-v6530" aria-label="Bugünkü Körebe ödülü ilerlemesi"><i style="width:${percent}%"></i></div><p><b>Bugünkü katkı: ${formatProgress(progress)}/100</b>${reward.daily.earned ? ` · Bugün ${reward.daily.earned} hak kazandın!` : ''}</p><p class="muted small">İlk tamamlamada 100 soru gerekir. Aynı testin her yeni tamamlanmasında eşik 50 soru artar. Yanlış-soru GTT/GDS çalışmaları iki kat sayılır.</p></div>`;
+    return `<div class="korebe-visual-v6530"><img src="${IMAGE}" alt="Korebe oynayan neseli cocuklar"></div><div class="korebe-copy-v6530"><h2>🎭 Ödüllerim</h2><div class="korebe-count-v6530"><strong>${reward.rights}</strong><span>Körebe hakkı</span></div><div class="korebe-progress-v6530" aria-label="Bugünkü Körebe ödülü ilerlemesi"><i style="width:${percent}%"></i></div><p><b>Bugünkü katkı: ${formatProgress(progress)}/100</b>${reward.daily.earned ? ` · Bugün ${reward.daily.earned} hak kazandın!` : ''}</p></div>`;
   }
 
   function decorateHome() {

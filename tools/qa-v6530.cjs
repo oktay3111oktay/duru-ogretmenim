@@ -118,7 +118,7 @@ const question = (id, course = 'Matematik', topic = 0) => ({
   const imageLoaded = true;
 
   console.log(JSON.stringify({ url, result, imageLoaded, alerts, errors }, null, 2));
-  assert(result.title.includes('V6.53.0'), 'Sürüm başlığı güncellenmedi');
+  assert(result.title.includes('V6.53.1'), 'Sürüm başlığı güncellenmedi');
   assert(result.inactiveRights === 0 && result.inactive.answered === 0 && result.inactiveAgain === null, 'Başla etkin değilken Körebe hakkı yazıldı veya aynı tamamlama iki kez işlendi');
   assert(result.attempts.first.threshold === 100 && result.attempts.first.earned === 1, 'İlk tamamlama 100 soru kuralı yanlış');
   assert(result.attempts.second.threshold === 150 && result.attempts.second.earned === 1, 'İkinci tamamlama 150 soru kuralı yanlış');
@@ -130,6 +130,7 @@ const question = (id, course = 'Matematik', topic = 0) => ({
   assert(/Körebe sayacın ilerledi/.test(result.completionNotice), 'Gerçek test tamamlama bildirimi gösterilmedi');
   assert(result.homeSnapshot.badgeIndex >= 0 && result.homeSnapshot.rewardIndex === result.homeSnapshot.badgeIndex + 1, 'Ödüllerim alanı Rozetlerimden hemen sonra değil');
   assert(result.homeSnapshot.text.includes('Körebe hakkı') && result.homeSnapshot.imageSrc.includes('korebe-reward-v6530.png') && imageLoaded, 'Ödüllerim kartı veya Körebe görseli eksik');
+  assert(!result.homeSnapshot.text.includes('İlk tamamlamada') && !result.homeSnapshot.text.includes('her yeni tamamlanmasında'), 'Ödüllerim kartındaki uzun kural açıklaması kaldırılmadı');
   assert(result.dayReset.rights === result.rightsBeforeDayReset && result.dayReset.progress === 0, 'Gün değişiminde hak koruma veya günlük katkı sıfırlama yanlış');
   assert(result.parent.before.includes('Körebe hakları') && !result.parent.hasIncrease && result.parent.spent && result.parent.afterSpend === 1 && result.parent.after.includes('1 kullanılabilir'), 'Veli Paneli yalnızca hak düşürme aracı yanlış');
   assert(result.syncMerged.rights === 7 && result.syncMerged.used === 2 && result.syncMerged.completions['normal|Matematik|0'] === 4 && result.syncMerged.daily.credit === 64, 'Körebe hakları cihaz eşitlemesinde korunmadı');
