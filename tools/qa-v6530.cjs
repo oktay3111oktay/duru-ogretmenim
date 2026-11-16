@@ -110,12 +110,12 @@ const question = (id, course = 'Matematik', topic = 0) => ({
     };
   });
 
-  await page.waitForTimeout(200);
-  const imageLoaded = await page.evaluate(() => {
-    home();
+  await page.evaluate(() => home());
+  await page.waitForFunction(() => {
     const image = document.querySelector('#korebe-reward-v6530 img');
     return !!image && image.complete && image.naturalWidth > 500;
-  });
+  }, undefined, { timeout: 30000 });
+  const imageLoaded = true;
 
   console.log(JSON.stringify({ url, result, imageLoaded, alerts, errors }, null, 2));
   assert(result.title.includes('V6.53.0'), 'Sürüm başlığı güncellenmedi');
