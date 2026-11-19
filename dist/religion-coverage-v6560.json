@@ -1,0 +1,181 @@
+{
+  "version": "V6.56.0",
+  "generatedAt": "2026-11-19T13:12:19.322Z",
+  "courses": {
+    "Din Kültürü": {
+      "topics": 18,
+      "questions": 436,
+      "topicQuestionCounts": [
+        {
+          "title": "Evrendeki Mükemmel Düzen",
+          "count": 24
+        },
+        {
+          "title": "Allah’ın Varlığı ve Birliği",
+          "count": 24
+        },
+        {
+          "title": "Allah’ın Güzel İsimleri",
+          "count": 28
+        },
+        {
+          "title": "İhlas Suresi",
+          "count": 20
+        },
+        {
+          "title": "Namaz İbadeti ve Çeşitleri",
+          "count": 24
+        },
+        {
+          "title": "Namazın Kılınışı ve Şartları",
+          "count": 32
+        },
+        {
+          "title": "Namazın İnsana Kazandırdıkları",
+          "count": 20
+        },
+        {
+          "title": "Tahiyyat Duası",
+          "count": 18
+        },
+        {
+          "title": "Kur’an-ı Kerim’in İç Düzeni",
+          "count": 24
+        },
+        {
+          "title": "Kur’an-ı Kerim’in Temel Özellikleri",
+          "count": 22
+        },
+        {
+          "title": "Kur’an-ı Kerim’in Ana Konuları",
+          "count": 28
+        },
+        {
+          "title": "Kevser Suresi",
+          "count": 18
+        },
+        {
+          "title": "Allah’ın Elçileri: Peygamberler",
+          "count": 28
+        },
+        {
+          "title": "Peygamber Kıssalarından Öğütler",
+          "count": 32
+        },
+        {
+          "title": "Kureyş Suresi",
+          "count": 18
+        },
+        {
+          "title": "Dinin Mimarimize Etkisi",
+          "count": 24
+        },
+        {
+          "title": "Camileri Tanıyalım",
+          "count": 28
+        },
+        {
+          "title": "Kültürümüzden Cami Örnekleri",
+          "count": 24
+        }
+      ],
+      "sourceFiles": [
+        "din-kulturu-ve-ahlak-bilgisi-5sinif-ders-kitabi_20261003_183932_159.pdf"
+      ],
+      "schoolSources": [
+        "din-511-eba.pdf",
+        "din-511-mebi.pdf"
+      ],
+      "schoolQuestions": 24,
+      "linkedSourceImages": 103,
+      "skillDistribution": {
+        "knowledge": 73,
+        "daily-life-application": 73,
+        "reasoning": 68,
+        "misconception-correction": 68,
+        "evidence-match": 59,
+        "multi-statement": 59,
+        "source-reading": 18,
+        "outcome-inference": 18
+      },
+      "originDistribution": {
+        "source-adapted": 109,
+        "source-based-original": 327
+      }
+    },
+    "Peygamberimizin Hayatı": {
+      "topics": 12,
+      "questions": 306,
+      "topicQuestionCounts": [
+        {
+          "title": "Peygamberimizin Doğduğu Çevre",
+          "count": 32
+        },
+        {
+          "title": "Peygamberimizin Doğumu",
+          "count": 22
+        },
+        {
+          "title": "Peygamberimizin Çocukluğu",
+          "count": 30
+        },
+        {
+          "title": "Peygamberimizin Çocuklarla İletişimi",
+          "count": 28
+        },
+        {
+          "title": "Çocukların Dünyasında Peygamberimiz",
+          "count": 24
+        },
+        {
+          "title": "Peygamberimizin Yanında Yetişen Çocuklar",
+          "count": 28
+        },
+        {
+          "title": "Peygamberimizin Temizlik Adabı",
+          "count": 24
+        },
+        {
+          "title": "Peygamberimizin Yeme İçme Adabı",
+          "count": 22
+        },
+        {
+          "title": "Peygamberimizin Giyim Kuşam Adabı",
+          "count": 22
+        },
+        {
+          "title": "Eş Olarak Peygamberimiz",
+          "count": 26
+        },
+        {
+          "title": "Baba Olarak Peygamberimiz",
+          "count": 26
+        },
+        {
+          "title": "Dede Olarak Peygamberimiz",
+          "count": 22
+        }
+      ],
+      "sourceFiles": [
+        "peygamberimizin-hayati-5sinif-ders-kitabi_20261003_213845_403.pdf"
+      ],
+      "schoolSources": [],
+      "schoolQuestions": 0,
+      "linkedSourceImages": 64,
+      "skillDistribution": {
+        "knowledge": 52,
+        "daily-life-application": 52,
+        "reasoning": 46,
+        "misconception-correction": 46,
+        "evidence-match": 43,
+        "multi-statement": 43,
+        "source-reading": 12,
+        "outcome-inference": 12
+      },
+      "originDistribution": {
+        "source-adapted": 76,
+        "source-based-original": 230
+      }
+    }
+  }
+}

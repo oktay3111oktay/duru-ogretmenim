@@ -33,12 +33,13 @@ const assert = (ok, message) => { if (!ok) throw new Error(message); };
     const firstSource={title:document.querySelector('.din511-panel h2')?.textContent,link:document.querySelector('.din511-panel a')?.getAttribute('href')};
     startQuiz('Din Kültürü',0,'normal');
     const normalPrompts=session.qs.map(question=>question.prompt);
-    const normalSourceCount=normalPrompts.filter(prompt=>topicBanks[0].slice(0,6).some(question=>question.prompt===prompt)).length;
+    const normalBankCount=session.qs.filter(question=>String(question.id||'').startsWith('RELX-DIN-')).length;
+    const schoolCounts=RELIGION_DATA['Din Kültürü'].map((_,index)=>window.__DURU_V651_TEST__.schoolQuestions('Din Kültürü',index).length);
     const gtt=window.__DURU_V651_TEST__.wrongPool('Din Kültürü');
     return {
       before,
       topicBanks:topicBanks.map(bank=>({count:bank.length,sourceCount:bank.filter(question=>question.din511Source).length,valid:bank.every(question=>Array.isArray(question.options)&&question.options.length===4&&new Set(question.options).size===4&&question.options.filter(option=>option===question.answer).length===1)})),
-      courseCards,courseLinks,firstSource,normalPrompts,normalSourceCount,gttCount:gtt.length,gttTagged:gtt.every(question=>question.din511Source),gttOptions:gtt.every(question=>question.options.length===4&&question.options.filter(option=>option===question.answer).length===1),
+      courseCards,courseLinks,firstSource,normalPrompts,normalBankCount,schoolCounts,gttCount:gtt.length,gttTagged:gtt.every(question=>question.din511Source),gttOptions:gtt.every(question=>question.options.length===4&&question.options.filter(option=>option===question.answer).length===1),
       state:{points:state.points,done:state.done,badges:state.badges,badgeDesigns:state.badgeDesigns},width:document.documentElement.scrollWidth,innerWidth
     };
   });
@@ -46,7 +47,8 @@ const assert = (ok, message) => { if (!ok) throw new Error(message); };
   assert(result.topicBanks.every(bank=>bank.count===10&&bank.sourceCount===6&&bank.valid),'Her Din konusu 6 kaynak sorusu ve 4 seçenek içermiyor');
   assert(result.courseCards===4&&result.courseLinks.some(link=>link.includes('din-511-eba.pdf'))&&result.courseLinks.some(link=>link.includes('din-511-mebi.pdf')),'Kaynak PDF bağlantıları konu kartlarında yok');
   assert(result.firstSource.title==='Ölçü ve denge'&&result.firstSource.link.includes('din-511-eba.pdf#page=3'),'Kaynak konu anlatımı açılmadı');
-  assert(result.normalSourceCount===6,'Yeni kaynak soruları konu testine girmedi');
+  assert(result.normalBankCount===10,'Normal konu testi yeni kazanım bankasından gelmedi');
+  assert(result.schoolCounts.slice(0,4).every(count=>count===6)&&result.schoolCounts.slice(4).every(count=>count===0),'24 okul sorusu doğru Okul Testlerine ayrılmadı');
   assert(result.gttCount===24&&result.gttTagged&&result.gttOptions,'Tamamlanmış Din konularının yeni soruları GTT havuzunda değil');
   assert(JSON.stringify(result.state.done)===JSON.stringify(seed.done)&&result.state.points===seed.points&&JSON.stringify(result.state.badgeDesigns)===JSON.stringify(seed.badgeDesigns),'İlerleme veya rozet tasarımı değişti');
   assert(result.width<=result.innerWidth+1,'390 pikselde yatay taşma var');
