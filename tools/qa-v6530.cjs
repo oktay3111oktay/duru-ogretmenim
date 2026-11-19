@@ -73,6 +73,17 @@ const question = (id, course = 'Matematik', topic = 0) => ({
     finishSession();
     const completionNotice = document.querySelector('.korebe-earned-v6530')?.textContent || '';
 
+    const recent = new Date().toISOString();
+    state.history['Almanca|0'] = [{ date: recent, score: 100 }, { date: recent, score: 100 }];
+    course = 'Almanca'; topic = 0; startQuiz('Almanca', 0, 'normal');
+    const blockedStatus = api.ensureTestLimit(session, true), blockedPointsBefore = state.points;
+    session.answers = session.qs.map(question => question.answer);
+    initialResult();
+    const blockedPointsAfter = state.points;
+    const limitNotice = document.getElementById('test-limit-toast-v6540')?.textContent || '';
+    const otherSession = makeSession('normal', ['Almanca|1'], 'other-test');
+    const otherStatus = api.ensureTestLimit(otherSession, true);
+
     home();
     const headings = [...document.querySelectorAll('#app h2')].map(node => node.textContent.trim());
     const badgeIndex = headings.findIndex(text => /Rozetlerim/.test(text));
@@ -89,7 +100,7 @@ const question = (id, course = 'Matematik', topic = 0) => ({
     parentView();
     const parentBefore = document.getElementById('korebe-parent-v6530')?.textContent || '';
     const hasIncrease = [...document.querySelectorAll('#korebe-parent-v6530 button')].some(button => /artır|ekle/i.test(button.textContent || ''));
-    const spent = api.useRights(5);
+    const spent = api.useRights(3);
     api.decorateParent();
     const afterSpend = api.ensureReward(false).rights;
     const parentAfter = document.getElementById('korebe-parent-v6530')?.textContent || '';
@@ -105,6 +116,7 @@ const question = (id, course = 'Matematik', topic = 0) => ({
       attempts: { first, second, third, fourth, fifthThreshold }, bonus, mixedSecond, mixedFirst,
       afterRules: { rights: afterRules.rights, credit: afterRules.daily.credit, answered: afterRules.daily.answered, bonusAnswered: afterRules.daily.bonusAnswered },
       completionNotice, homeSnapshot, rightsBeforeDayReset, dayReset,
+      repeatLimit: { blockedStatus, blockedPointsBefore, blockedPointsAfter, limitNotice, otherStatus },
       parent: { before: parentBefore, hasIncrease, spent, afterSpend, after: parentAfter }, syncMerged,
       before, preserved, width: document.documentElement.scrollWidth, innerWidth: window.innerWidth
     };
@@ -118,16 +130,17 @@ const question = (id, course = 'Matematik', topic = 0) => ({
   const imageLoaded = true;
 
   console.log(JSON.stringify({ url, result, imageLoaded, alerts, errors }, null, 2));
-  assert(result.title.includes('V6.53.1'), 'Sürüm başlığı güncellenmedi');
+  assert(result.title.includes('V6.54.0'), 'Sürüm başlığı güncellenmedi');
   assert(result.inactiveRights === 0 && result.inactive.answered === 0 && result.inactiveAgain === null, 'Başla etkin değilken Körebe hakkı yazıldı veya aynı tamamlama iki kez işlendi');
   assert(result.attempts.first.threshold === 100 && result.attempts.first.earned === 1, 'İlk tamamlama 100 soru kuralı yanlış');
   assert(result.attempts.second.threshold === 150 && result.attempts.second.earned === 1, 'İkinci tamamlama 150 soru kuralı yanlış');
-  assert(result.attempts.third.threshold === 200 && result.attempts.third.earned === 1, 'Üçüncü tamamlama 200 soru kuralı yanlış');
-  assert(result.attempts.fourth.threshold === 250 && result.attempts.fourth.earned === 1 && result.attempts.fifthThreshold === 300, 'Tekrar eşiğinin her seferinde 50 artması yanlış');
+  assert(result.attempts.third.blocked && result.attempts.fourth.blocked && result.attempts.fifthThreshold === 300, 'Aynı testin üçüncü ve sonraki tamamlamaları 30 günlük puan molasına girmedi');
   assert(result.bonus.threshold === 100 && result.bonus.bonusAnswered === 50 && result.bonus.earned === 1, 'Yanlış-soru GTT/GDS iki kat bonusu yanlış');
   assert(Math.abs(result.mixedSecond.credit - 50) < 0.01 && Math.abs(result.mixedFirst.credit - 50) < 0.01, 'Farklı tekrar eşikleri oransal birleşmiyor');
-  assert(result.afterRules.rights === 6 && Math.abs(result.afterRules.credit - 600) < 0.01, `Toplam Körebe hesabı yanlış: ${JSON.stringify(result.afterRules)}`);
+  assert(result.afterRules.rights === 4 && Math.abs(result.afterRules.credit - 400) < 0.01, `Toplam Körebe hesabı yanlış: ${JSON.stringify(result.afterRules)}`);
   assert(/Körebe sayacın ilerledi/.test(result.completionNotice), 'Gerçek test tamamlama bildirimi gösterilmedi');
+  assert(result.repeatLimit.blockedStatus.blocked && result.repeatLimit.blockedPointsAfter === result.repeatLimit.blockedPointsBefore, 'Puan molasındaki test yıldız puanı kazandırdı');
+  assert(/başka bir teste geç/i.test(result.repeatLimit.limitNotice) && !result.repeatLimit.otherStatus.blocked, 'Tek seferlik test sınırı uyarısı veya başka testin ödül hakkı yanlış');
   assert(result.homeSnapshot.badgeIndex >= 0 && result.homeSnapshot.rewardIndex === result.homeSnapshot.badgeIndex + 1, 'Ödüllerim alanı Rozetlerimden hemen sonra değil');
   assert(result.homeSnapshot.text.includes('Körebe hakkı') && result.homeSnapshot.imageSrc.includes('korebe-reward-v6530.png') && imageLoaded, 'Ödüllerim kartı veya Körebe görseli eksik');
   assert(!result.homeSnapshot.text.includes('İlk tamamlamada') && !result.homeSnapshot.text.includes('her yeni tamamlanmasında'), 'Ödüllerim kartındaki uzun kural açıklaması kaldırılmadı');

@@ -1,10 +1,13 @@
-/* V6.53.1: Gunluk calisma temelli Korebe odulleri. */
+/* V6.54.0: Gunluk calisma temelli Korebe odulleri ve test tekrar siniri. */
 (() => {
   'use strict';
 
   const FIELD = 'blindMansBuffRewardsV6530';
   const SESSION_FIELD = '_blindMansBuffV6530';
   const IMAGE = './assets/korebe-reward-v6530.png';
+  const TEST_LIMIT_DAYS = 30;
+  const TEST_LIMIT_COMPLETIONS = 2;
+  const DAY_MS = 24 * 60 * 60 * 1000;
   const api = window.__DURU_V651_TEST__;
   const pad = value => String(value).padStart(2, '0');
   const dayKey = (date = new Date()) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
@@ -23,6 +26,7 @@
     old.rights = integer(old.rights);
     old.used = integer(old.used);
     old.completions = old.completions && typeof old.completions === 'object' ? old.completions : {};
+    old.testLimits = old.testLimits && typeof old.testLimits === 'object' ? old.testLimits : {};
     if (!old.createdAt) { old.createdAt = nowIso(); changed = true; }
     if (!old.daily || typeof old.daily !== 'object' || old.daily.day !== dayKey()) {
       old.daily = freshDaily();
@@ -69,6 +73,70 @@
     return `${kind}|${source}|${fingerprint}`;
   }
 
+  function limitIdentity(testSession) {
+    const s = testSession || {};
+    const kind = String(s.kind || 'normal');
+    const keys = [...new Set((s.keys || []).map(String))].sort();
+    const first = s.qs?.[0] || {};
+    const fallback = `${first.sourceCourseId || first.c || course || 'Test'}|${Number(first.sourceTopicId ?? first.t ?? topic ?? 0)}`;
+    const source = keys.length ? keys.join(',') : fallback;
+    if (kind === 'school') return `school|${source}|${integer(s._schoolTestIndexV6519)}`;
+    if (kind === 'normal' || kind === 'extra') return `${kind}|${source}`;
+    if (s._wrongOnlyV651) return `wrong-gtt|${String(s._wrongScopeV651 || first.sourceCourseId || first.c || course || 'GTT Genel')}`;
+    return `${kind}|${source}`;
+  }
+
+  function validTime(value) {
+    const time = Date.parse(String(value || ''));
+    return Number.isFinite(time) ? time : 0;
+  }
+
+  function inferNormalHistory(testSession) {
+    const s = testSession || {};
+    if (String(s.kind || '') !== 'normal' || !Array.isArray(s.keys) || s.keys.length !== 1) return [];
+    const rows = state.history?.[String(s.keys[0])];
+    return (Array.isArray(rows) ? rows : rows ? [rows] : []).map(row => validTime(row?.date)).filter(Boolean).sort((a, b) => a - b);
+  }
+
+  function ensureTestLimit(testSession, save = false) {
+    const reward = ensureReward(false), key = limitIdentity(testSession), now = Date.now();
+    let row = reward.testLimits[key] && typeof reward.testLimits[key] === 'object' ? reward.testLimits[key] : null;
+    let changed = false;
+    if (!row) {
+      const recent = inferNormalHistory(testSession).filter(time => time > now - TEST_LIMIT_DAYS * DAY_MS);
+      const latest = recent.at(-1) || 0;
+      row = {
+        rewardedCompletions: Math.min(TEST_LIMIT_COMPLETIONS, recent.length),
+        blockedUntil: recent.length >= TEST_LIMIT_COMPLETIONS && latest ? new Date(latest + TEST_LIMIT_DAYS * DAY_MS).toISOString() : '',
+        seededFromHistory: recent.length > 0,
+        updatedAt: nowIso()
+      };
+      reward.testLimits[key] = row;
+      changed = true;
+    }
+    if (row.blockedUntil && validTime(row.blockedUntil) <= now) {
+      row.rewardedCompletions = 0;
+      row.blockedUntil = '';
+      row.windowStartedAt = '';
+      row.updatedAt = nowIso();
+      changed = true;
+    }
+    row.rewardedCompletions = integer(row.rewardedCompletions);
+    const blocked = row.rewardedCompletions >= TEST_LIMIT_COMPLETIONS && validTime(row.blockedUntil) > now;
+    if (save && changed) persist();
+    return { key, row, blocked, blockedUntil: blocked ? row.blockedUntil : '', remaining: Math.max(0, TEST_LIMIT_COMPLETIONS - row.rewardedCompletions) };
+  }
+
+  function markRewardedCompletion(testSession) {
+    const status = ensureTestLimit(testSession, false), row = status.row;
+    if (status.blocked) return status;
+    row.rewardedCompletions = integer(row.rewardedCompletions) + 1;
+    if (!row.windowStartedAt) row.windowStartedAt = nowIso();
+    if (row.rewardedCompletions >= TEST_LIMIT_COMPLETIONS) row.blockedUntil = new Date(Date.now() + TEST_LIMIT_DAYS * DAY_MS).toISOString();
+    row.updatedAt = nowIso();
+    return ensureTestLimit(testSession, false);
+  }
+
   function thresholdForAttempt(attempt) {
     return 100 + Math.max(0, integer(attempt) - 1) * 50;
   }
@@ -83,6 +151,25 @@
     return testSession[SESSION_FIELD];
   }
 
+  function formatDate(value) {
+    const date = new Date(value);
+    return Number.isFinite(date.getTime()) ? date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+  }
+
+  function showLimitNotice(testSession) {
+    const meta = ensureSessionMeta(testSession), status = ensureTestLimit(testSession, true);
+    if (!meta || !status.blocked || meta.limitNoticeShown) return;
+    meta.limitNoticeShown = true;
+    document.getElementById('test-limit-toast-v6540')?.remove();
+    const toast = document.createElement('aside');
+    toast.id = 'test-limit-toast-v6540';
+    toast.setAttribute('role', 'status');
+    toast.innerHTML = `<button type="button" aria-label="Uyarıyı kapat">×</button><strong>⏳ Bu test puan molasında</strong><p>Bu testi son 30 gün içinde ${TEST_LIMIT_COMPLETIONS} kez ödüllü tamamladın. Çözmeye devam edebilirsin; ancak bu test ${formatDate(status.blockedUntil)} tarihine kadar puan ve Körebe katkısı vermeyecek. Ödül kazanmak için başka bir teste geç.</p>`;
+    toast.querySelector('button').onclick = () => toast.remove();
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 8000);
+  }
+
   function dailyStudyActive() {
     try { window.__DURU_DAILY_V6519_TEST__?.ensureToday?.(true); } catch (_) {}
     const daily = state.dailyStudyV6519;
@@ -93,6 +180,8 @@
     if (!testSession || !dailyStudyActive()) return false;
     const meta = ensureSessionMeta(testSession), day = dayKey();
     if (!meta) return false;
+    const limit = ensureTestLimit(testSession, true);
+    if (limit.blocked) { showLimitNotice(testSession); return false; }
     const bucket = meta.days[day] && typeof meta.days[day] === 'object'
       ? meta.days[day]
       : { answered: 0, bonusAnswered: 0, phases: {}, updatedAt: '' };
@@ -109,6 +198,14 @@
     if (!testSession) return null;
     const reward = ensureReward(false), meta = ensureSessionMeta(testSession);
     if (!meta || meta.completed) return null;
+    const limitBefore = ensureTestLimit(testSession, false);
+    if (limitBefore.blocked) {
+      meta.completed = true;
+      meta.completedAt = nowIso();
+      reward.updatedAt = nowIso();
+      persist();
+      return { key: meta.key, blocked: true, blockedUntil: limitBefore.blockedUntil, answered: 0, bonusAnswered: 0, credit: 0, earned: 0, rights: reward.rights };
+    }
     const attempt = integer(reward.completions[meta.key]) + 1;
     reward.completions[meta.key] = attempt;
     meta.completed = true;
@@ -128,9 +225,10 @@
     reward.daily.completedTests = integer(reward.daily.completedTests) + 1;
     reward.daily.updatedAt = nowIso();
     reward.rights = integer(reward.rights) + earned;
+    const limitAfter = markRewardedCompletion(testSession);
     reward.updatedAt = nowIso();
     persist();
-    return { key: meta.key, attempt, threshold, answered, bonusAnswered, credit: round(credit), earned, rights: reward.rights };
+    return { key: meta.key, attempt, threshold, answered, bonusAnswered, credit: round(credit), earned, rights: reward.rights, blockedUntil: limitAfter.blockedUntil };
   }
 
   function progressValue(reward = ensureReward(false)) {
@@ -203,7 +301,9 @@
   };
 
   function showCompletionNotice(outcome) {
-    if (!outcome || !outcome.answered) return;
+    if (!outcome) return;
+    if (outcome.blocked) { showLimitNotice(session); return; }
+    if (!outcome.answered) return;
     const card = document.querySelector('.completion-card');
     if (!card || card.querySelector('.korebe-earned-v6530')) return;
     const box = document.createElement('div');
@@ -223,10 +323,43 @@
     return nextBefore.apply(this, arguments);
   };
 
+  const startBefore = window.startSession;
+  if (typeof startBefore === 'function') window.startSession = startSession = function() {
+    const result = startBefore.apply(this, arguments);
+    if (session) {
+      const status = ensureTestLimit(session, true);
+      session._rewardPointBlockedV6540 = status.blocked;
+      session._rewardBlockedUntilV6540 = status.blockedUntil;
+      if (status.blocked) setTimeout(() => showLimitNotice(session), 0);
+    }
+    return result;
+  };
+
+  const initialBefore = window.initialResult;
+  if (typeof initialBefore === 'function') window.initialResult = initialResult = function() {
+    const active = session, blocked = !!active?._rewardPointBlockedV6540, beforePoints = integer(state.points);
+    const result = initialBefore.apply(this, arguments);
+    if (blocked && state.points !== beforePoints) {
+      state.points = beforePoints;
+      persist();
+      document.querySelectorAll('#points,#lesson-points,.lesson-top-right b,.course-top b').forEach(node => {
+        if (/⭐/.test(node.textContent || '')) node.textContent = `⭐ ${state.points}`;
+      });
+      [...document.querySelectorAll('#app p')].filter(node => /\+\d+\s*⭐/.test(node.textContent || '')).forEach(node => {
+        node.innerHTML = node.innerHTML.replace(/\+\d+\s*⭐/, '+0 ⭐ <small>(puan molası)</small>');
+      });
+      showLimitNotice(active);
+    }
+    return result;
+  };
+
   const repairBefore = window.repairChoose;
   if (typeof repairBefore === 'function') window.repairChoose = repairChoose = function() {
-    if (session) recordAnswer(session, 'repair');
-    return repairBefore.apply(this, arguments);
+    const active = session, blocked = !!active?._rewardPointBlockedV6540, beforePoints = integer(state.points);
+    if (active) recordAnswer(active, 'repair');
+    const result = repairBefore.apply(this, arguments);
+    if (blocked && state.points !== beforePoints) { state.points = beforePoints; persist(); }
+    return result;
   };
 
   const finishBefore = window.finishSession;
@@ -265,6 +398,9 @@
     .korebe-earned-v6530{margin:14px 0;padding:14px;border-radius:15px;background:#e8f8ff;border:2px solid #55b9de;color:#173c50}.korebe-earned-v6530.bonus{background:linear-gradient(135deg,#fff0b8,#ffe2f2);border-color:#ff9b28;color:#623414}.korebe-earned-v6530 p{margin:7px 0 0}
     body.dark .korebe-card-v6530{background:linear-gradient(135deg,#fff8ce,#e7fff3 54%,#efe8ff)!important;color:#26334b!important}body.dark .korebe-parent-v6530{background:linear-gradient(135deg,#fff6d9,#e7fff3)!important;color:#26334b!important}body.dark .korebe-card-v6530 h2,body.dark .korebe-parent-v6530 h2{color:#26334b!important}body.dark .korebe-card-v6530 .muted,body.dark .korebe-parent-v6530 .muted{color:#5b687a!important}
     @media(max-width:620px){.korebe-card-v6530{grid-template-columns:1fr;gap:8px}.korebe-visual-v6530{min-height:130px}.korebe-visual-v6530 img{max-height:210px}.korebe-parent-v6530{display:grid}.korebe-spend-v6530{grid-template-columns:minmax(100px,1fr) 1fr}}
+    #test-limit-toast-v6540{position:fixed;z-index:100200;left:50%;top:18px;transform:translateX(-50%);width:min(620px,calc(100vw - 24px));padding:16px 46px 16px 17px;border:2px solid #f0a93a;border-radius:16px;background:#fff5d7;color:#4c3511;box-shadow:0 15px 45px #10182755;animation:limit-in-v6540 .24s ease}
+    #test-limit-toast-v6540 strong{display:block;font-size:18px;margin-bottom:5px}#test-limit-toast-v6540 p{margin:0;line-height:1.45}#test-limit-toast-v6540 button{position:absolute;right:9px;top:8px;padding:5px 10px;background:#8b5e17;color:#fff}
+    @keyframes limit-in-v6540{from{opacity:0;transform:translate(-50%,-12px)}to{opacity:1;transform:translate(-50%,0)}}
   `;
   document.head.appendChild(style);
 
@@ -279,6 +415,7 @@
 
   window.__DURU_REWARDS_V6530_TEST__ = {
     dayKey, ensureReward, sessionIdentity, thresholdForAttempt, recordAnswer, finalizeSession,
-    progressValue, decorateHome, decorateParent, useRights
+    progressValue, decorateHome, decorateParent, useRights, limitIdentity, ensureTestLimit,
+    testLimitDays: TEST_LIMIT_DAYS, testLimitCompletions: TEST_LIMIT_COMPLETIONS
   };
 })();

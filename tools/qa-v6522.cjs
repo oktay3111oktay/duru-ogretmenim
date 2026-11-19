@@ -64,7 +64,7 @@ const question = (id, course, topic, prompt) => ({
       preserved: { points: state.points, done: state.done['Matematik|0'], badge: state.badges.includes('first'), card: !!state.collection['Korunan kart'] }
     };
   });
-  assert(initial.title.includes('V6.53.1'), 'Sürüm başlığı güncellenmedi');
+  assert(initial.title.includes('V6.54.0'), 'Sürüm başlığı güncellenmedi');
   assert(!initial.miniHome && !initial.miniParent && initial.miniFunction === 'undefined', 'Mini Oyunlar tamamen kaldırılmadı');
   assert(initial.fenPrompts.includes('Fen kaynağından gelen eski soru') && !initial.dinPrompts.includes('Fen kaynağından gelen eski soru'), 'Din/Fen yanlış kaydı gerçek dersine taşınmadı');
   assert(initial.repaired?.c === 'Fen Bilimleri' && initial.repaired?.sourceCourseId === 'Fen Bilimleri', 'Onarılan soru kimliği Fen Bilimleri değil');
