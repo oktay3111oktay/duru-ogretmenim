@@ -4,7 +4,7 @@ Tarih: 19 Kasım 2026
 
 | Ders | Konu | Yenilenmiş havuz | Okul sorusu | Bağlı MEB sayfası |
 |---|---:|---:|---:|---:|
-| Din Kültürü | 18 | 436 | 24 | 103 |
+| Din Kültürü | 18 | 436 | 80 | 103 |
 | Peygamberimizin Hayatı | 12 | 306 | 0 | 64 |
 
 Toplam 30 konu için 742 soruluk yenilenmiş havuz hazırlanmıştır: 185 temel soru kaynak bilgisinden uyarlanmış, 557 soru ise kaynak kazanımlarına dayalı özgün vaka ve akıl yürütme sorusudur. Konu havuzları kapsamlarına göre 18–32 soru arasında değişir; tek bir yapay sayıya tamamlanmamıştır. Her soru kaynak dosya, sayfa, konu aralığı, kazanım, beceri ve zorluk bilgisi taşır. Soru türleri doğrudan bilgiyle sınırlı değildir; günlük yaşam uygulaması, akıl yürütme, yanlış bilgiyi düzeltme, kanıt eşleştirme, çoklu önerme ve metinden kazanım çıkarmayı kapsar.
@@ -48,4 +48,4 @@ Toplam 30 konu için 742 soruluk yenilenmiş havuz hazırlanmıştır: 185 temel
 
 Sayı yerine kazanım kapsamı esas alınmıştır. İyi tasarlanmış kısa ustalık ölçümleri ve geri bildirimli tekrarlar, aynı oturumda çok sayıda benzer soru çözmekten daha değerlidir. Bu nedenle dar kapsamlı dua ve sure konularında 18–20; birden çok kavram, olay veya aşama içeren konularda 24–32 farklı soru kullanılmıştır. Sorular 10'arlı oturumlarla döner; yanlışlar GTT/GDS ve uygulamanın aralıklı tekrar sistemiyle yeniden gelir.
 
-Din Kültürü için mevcut EBA ve MEBİ dosyalarındaki 24 okul sorusu yalnız içerikle eşleşen ilk ünitede korunmuştur. Peygamberimizin Hayatı için MEB dışı okul materyali bulunmadığından okul sorusu üretilmemiştir.
+Din Kültürü için EBA ve MEBİ dosyalarındaki 24 uyarlanmış okul sorusu korunmuş, aynı kaynak ve öğrenme çıktılarından 56 yeni özgün soru eklenmiştir. İlk dört konuda toplam 80 okul sorusu vardır; her konu 2 adet 10 soruluk Okul Testi içerir. Daha önce ilk Okul Testini tamamlamış konular yeniden kilitlenmez; yeni sorular GTT/GDS havuzuna da girer. Peygamberimizin Hayatı için MEB dışı okul materyali bulunmadığından okul sorusu üretilmemiştir.

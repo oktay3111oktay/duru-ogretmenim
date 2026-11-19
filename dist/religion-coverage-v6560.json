@@ -1,6 +1,6 @@
 {
   "version": "V6.56.0",
-  "generatedAt": "2026-11-19T13:12:19.322Z",
+  "generatedAt": "2026-11-19T13:20:15.285Z",
   "courses": {
     "Din Kültürü": {
       "topics": 18,
@@ -86,7 +86,7 @@
         "din-511-eba.pdf",
         "din-511-mebi.pdf"
       ],
-      "schoolQuestions": 24,
+      "schoolQuestions": 80,
       "linkedSourceImages": 103,
       "skillDistribution": {
         "knowledge": 73,
