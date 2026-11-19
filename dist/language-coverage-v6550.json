@@ -1,0 +1,52 @@
+{
+  "version": "V6.55.0",
+  "generatedAt": "2026-11-19T10:21:00.945Z",
+  "schoolSources": {
+    "Almanca": 0,
+    "İngilizce": 0
+  },
+  "courses": {
+    "Almanca": {
+      "topics": 18,
+      "questions": 432,
+      "speakingTasks": 54,
+      "sourceFiles": [
+        "almanca5dkckl.pdf",
+        "almanca5ckckl.pdf",
+        "almanca5okckl.pdf"
+      ],
+      "linkedSourceImages": 108,
+      "skillDistribution": {
+        "vocabulary": 36,
+        "listening": 72,
+        "functional-language": 72,
+        "sentence-building": 90,
+        "reading": 54,
+        "contextual-use": 36,
+        "grammar-correction": 36,
+        "listening-dialogue": 36
+      }
+    },
+    "İngilizce": {
+      "topics": 24,
+      "questions": 576,
+      "speakingTasks": 72,
+      "sourceFiles": [
+        "ingilizce5dk.pdf",
+        "ingilizce5ck.pdf",
+        "ingilizce5ok.pdf"
+      ],
+      "linkedSourceImages": 144,
+      "skillDistribution": {
+        "vocabulary": 48,
+        "listening": 96,
+        "functional-language": 96,
+        "sentence-building": 120,
+        "reading": 72,
+        "contextual-use": 48,
+        "grammar-correction": 48,
+        "listening-dialogue": 48
+      }
+    }
+  }
+}
