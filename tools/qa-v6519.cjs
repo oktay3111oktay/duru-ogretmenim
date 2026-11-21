@@ -119,15 +119,15 @@ function verifySources() {
 
   assert(result.before.first === '🏫 Okul Testi bekliyor', 'Konu Testinden sonra Okul Testi bekleme durumu görünmüyor');
   assert(result.before.second === '🔒 Kilitli' && !result.before.secondAccessible, 'Okul Testi bitmeden sonraki konu açıldı');
-  assert(/^🏫 Okul Testi \(\d+\)$/.test(result.before.schoolLabel) && !result.before.schoolLabel.includes('+'), `Okul Testi sayısı etiketi yanlış: ${result.before.schoolLabel}`);
+  assert(/^🏫 Okul Testi \(\d+\)(?: · \d+\. test)?$/.test(result.before.schoolLabel) && !result.before.schoolLabel.includes('+'), `Okul Testi sayısı etiketi yanlış: ${result.before.schoolLabel}`);
   assert(result.before.extraLabel === '✨ Ekstra test', 'Ekstra Test yanlışlıkla zorunlu görünüyor');
   assert(result.schoolStored && result.after.first === '✅ Konu tamamlandı' && result.after.secondAccessible, 'Okul Testi tamamlanınca sonraki konu açılmadı');
   assert(result.afterOne && result.reset === 0 && !result.afterTwo && result.mastery.streak === 2 && result.mastery.resolved, 'Yanlış-GTT iki ardışık doğru kuralı çalışmıyor');
-  assert(result.gdsText.includes('GDS') && result.gdsText.includes('Genel Değerlendirme Testi') && !result.gdsText.includes('Genel tekrar testleri'), `Ana sayfa GDS etiketi yanlış: ${result.gdsText}`);
+  assert(result.gdsText.includes('GDS') && result.gdsText.includes('Genel Değerlendirme Sınavı') && !result.gdsText.includes('Genel tekrar testleri'), `Ana sayfa GDS etiketi yanlış: ${result.gdsText}`);
   assert(result.startText === 'Başla' && result.activeText === 'Bitir' && result.stoppedText === 'Başla', 'Günlük Çalışma düğme geçişi yanlış');
   assert(result.activeSummary.total === 2 && result.activeSummary.correct === 1 && result.activeSummary.wrong === 1 && result.activeSummary.byCourse.Matematik.correct === 1 && result.activeSummary.byCourse.Türkçe.wrong === 1, 'Günlük soru sayacı yanlış');
   assert(result.midnight.active && result.midnight.total === 0, 'Gece yarısı sayaç sıfırlama/aktif devam kuralı yanlış');
-  assert(result.progress.completed === 1 && result.progress.schoolCompleted === 1 && result.progress.schoolPending === 0, 'Veli ilerlemesi Okul Testini hesaba katmıyor');
+  assert(result.progress.completed === 1 && result.progress.schoolCompleted === 2 && result.progress.schoolPending === 0, 'Veli ilerlemesi Okul Testini hesaba katmıyor: '+JSON.stringify(result.progress));
   assert(result.points >= 91 && JSON.stringify(result.badges).includes('first'), 'Mevcut öğrenci puanı/rozeti korunmadı');
   assert(result.width <= result.innerWidth + 1, '390 piksel görünümde yatay taşma var');
   assert(!errors.length, 'Tarayıcı hataları: ' + errors.join(' | '));

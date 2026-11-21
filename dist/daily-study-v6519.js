@@ -119,7 +119,7 @@
     const gds = document.querySelector('.teacher-gtt-card');
     if (gds && !gds.dataset.gdsV6519) {
       gds.dataset.gdsV6519 = '1';
-      gds.innerHTML = '<span>🧠</span>GDS<div class="muted small">Genel Değerlendirme Testi</div>';
+      gds.innerHTML = '<span>🧠</span>GDS<div class="muted small">Genel Değerlendirme Sınavı</div>';
     }
 
     const hero = document.querySelector('.teacher-home-hero');

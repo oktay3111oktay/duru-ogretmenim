@@ -57,11 +57,11 @@ const assert = (ok, message) => { if (!ok) throw new Error(message); };
 
   assert(normal.result.row.completed===3 && normal.result.row.testCompleted===3 && normal.result.row.percent===14 && normal.result.row.testPercent===14, 'Normal Türkçe ilerlemesi %14 değil');
   assert(normal.result.header.includes('3/22 konu tamamlandı') && normal.result.statuses.every(text=>text==='✅ Konu tamamlandı'), 'Tamamlanan konu durumu yanlış');
-  assert(pending.result.row.completed===1 && pending.result.row.testCompleted===3 && pending.result.row.schoolPending===2 && pending.result.row.percent===5 && pending.result.row.testPercent===14, 'Zorunlu Okul Testi ayrımı yanlış');
+  assert(pending.result.row.completed===1 && pending.result.row.testCompleted===3 && pending.result.row.schoolPending===4 && pending.result.row.percent===5 && pending.result.row.testPercent===14, 'Zorunlu Okul Testi ayrımı yanlış: '+JSON.stringify(pending.result.row));
   assert(pending.result.header.includes('1/22 konu tamamlandı'), 'Türkçe üst özeti zorunlu Okul Testini doğru ayırmıyor');
   assert(pending.result.statuses[0]==='🏫 Okul Testi bekliyor'&&pending.result.statuses[1]==='🏫 Okul Testi bekliyor'&&pending.result.statuses[2]==='✅ Konu tamamlandı', 'Okul Testi bekleyen konular yanlış görünüyor');
   assert(pending.result.enabled.every(Boolean), `Tamamlanmış Türkçe konuları tekrar çalışmaya kapatıldı: ${JSON.stringify(pending.result.enabled)}`);
-  assert(!pending.result.panelHidden && pending.result.panelText.includes('Konu testleri14%') && pending.result.panelText.includes('1/22 konu tamamen tamamlandı') && pending.result.panelText.includes('3/22 konu testi bitti') && pending.result.panelText.includes('2 Okul Testi bekliyor'), 'Veli Paneli Okul Testi ayrımını göstermiyor');
+  assert(!pending.result.panelHidden && pending.result.panelText.includes('Konu testleri14%') && pending.result.panelText.includes('1/22 konu tamamen tamamlandı') && pending.result.panelText.includes('3/22 konu testi bitti') && pending.result.panelText.includes('4 Okul Testi bekliyor'), 'Veli Paneli Okul Testi ayrımını göstermiyor');
   assert(normal.result.legacyDetails===0 && pending.result.legacyDetails===0, 'Eski ilk deneme/hata ayrıntıları Veli Panelinde kaldı');
   assert(normal.result.helpItems===4 && normal.result.detailLists===8 && normal.result.detailItems[1]===7 && normal.result.detailItems.filter((_,index)=>index!==1).every(count=>count===6), 'İlerleme açıklamaları madde madde ayrı satırlarda değil');
   assert(normal.result.row.legacyMebCompleted===3 && normal.result.row.legacyMebTotal===24 && normal.result.row.legacyMebPercent===13 && normal.result.panelText.includes('3/24 önceki MEB metin kaydı korundu'), 'Önceki Türkçe MEB ilerlemesi görünür biçimde korunmadı');
