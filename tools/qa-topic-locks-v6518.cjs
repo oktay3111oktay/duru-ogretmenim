@@ -49,7 +49,7 @@ const assert = (ok, message) => { if (!ok) throw new Error(message); };
     const trApi=window.__DURU_TURKISH_V6520_TEST__,firstId=trApi.curriculum[0].id;
     state.turkishV6520.completed[firstId]='2026-11-03T00:00:00.000Z';persist();openCourse('Türkçe');
     const turkishPending=[...document.querySelectorAll('.tr-topic-v6520 small')].slice(0,3).map(x=>x.textContent);
-    state.turkishV6520.schoolDone[firstId]={0:'2026-11-03T01:00:00.000Z'};persist();openCourse('Türkçe');
+    state.turkishV6520.schoolDone[firstId]=Object.fromEntries(trApi.schoolParts(0).map((_,index)=>[index,'2026-11-03T01:00:00.000Z']));persist();openCourse('Türkçe');
     const turkishAfter=[...document.querySelectorAll('.tr-topic-v6520 small')].slice(0,3).map(x=>x.textContent);
     return {rows,turkishPending,turkishAfter,startedPreserved:before===JSON.stringify(state.startedTopicsV651),points:state.points,badges:state.badges,width:document.documentElement.scrollWidth,innerWidth};
   });

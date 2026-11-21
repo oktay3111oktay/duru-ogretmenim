@@ -83,6 +83,7 @@
   progress.started = progress.started && typeof progress.started === 'object' ? progress.started : {};
   progress.schoolDone = progress.schoolDone && typeof progress.schoolDone === 'object' ? progress.schoolDone : {};
   progress.schoolNext = progress.schoolNext && typeof progress.schoolNext === 'object' ? progress.schoolNext : {};
+  progress.normalNextV6570 = progress.normalNextV6570 && typeof progress.normalNextV6570 === 'object' ? progress.normalNextV6570 : {};
   progress.version = DATA.version;
 
   function item(index) { return curriculum[Number(index)] || null; }
@@ -195,7 +196,11 @@
       if (!isDone(index)) return alert('Ekstra Test için önce Konu Testini tamamlamalısın.');
       const school = prepare(topicData.schoolQuestions || [], index);
       rows = [...school.slice(10, 20), ...rows].slice(0, 10);
-    } else rows = rows.slice(0, 10);
+    } else {
+      const id = topicId(index), offset = (Number(progress.normalNextV6570[id] || 0) * 10) % Math.max(1, rows.length);
+      rows = [...rows.slice(offset), ...rows.slice(0, offset)].slice(0, 10);
+      progress.normalNextV6570[id] = Number(progress.normalNextV6570[id] || 0) + 1;
+    }
     if (rows.length < 5) return alert('Bu test için en az 5 doğrulanmış soru bulunamadı.');
     course = COURSE; topic = index; markStarted(index); startSession(rows, kind, [`${COURSE}|${index}`]);
     if (session) { session._turkishV6520 = { topicId: topicId(index), index, kind }; persist(); }

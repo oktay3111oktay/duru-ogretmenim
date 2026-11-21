@@ -162,8 +162,24 @@
     const cursorKey = scope || '__all__';
     const cursor = Number(state.wrongGttCursorV651[cursorKey] || 0);
     const count = Math.min(10, pool.length), picked = [];
-    for (let index = 0; index < count; index += 1) picked.push(clone(pool[(cursor + index) % pool.length]));
-    state.wrongGttCursorV651[cursorKey] = (cursor + count) % pool.length;
+    if (scope) {
+        for (let index = 0; index < count; index += 1) picked.push(clone(pool[(cursor + index) % pool.length]));
+        state.wrongGttCursorV651[cursorKey] = (cursor + count) % pool.length;
+    } else {
+        const groups = new Map();
+        pool.forEach(item => { const key = item.c || 'Diğer'; if (!groups.has(key)) groups.set(key, []); groups.get(key).push(item); });
+        const names = [...groups.keys()], used = new Set();
+        for (let round = 0; picked.length < count && round < pool.length; round += 1) {
+          for (let step = 0; step < names.length && picked.length < count; step += 1) {
+            const name = names[(cursor + step) % names.length], rows = groups.get(name) || [];
+            if (!rows.length) continue;
+            const item = rows[(cursor + round) % rows.length], id = api.questionId(item);
+            if (used.has(id)) continue;
+            used.add(id); picked.push(clone(item));
+          }
+        }
+        state.wrongGttCursorV651[cursorKey] = names.length ? (cursor + 1) % names.length : 0;
+    }
     persist();
     course = scope || 'GTT Genel';
     topic = Number(picked[0]?.t || 0);

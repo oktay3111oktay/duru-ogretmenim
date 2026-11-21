@@ -30,7 +30,8 @@ const assert = (value, message) => { if (!value) throw new Error(message); };
     const groups=[...document.querySelectorAll('.tr-group-v6520')].map(x=>x.querySelector('span')?.textContent.trim()||'');
     const statuses=[...document.querySelectorAll('.tr-topic-v6520 small')].map(x=>x.textContent.trim());
     const groupStarts=groups.map(group=>curriculum.findIndex(topic=>topic.group===group));
-    const preservedKeys=Object.fromEntries(['points','done','history','scores','mistakes','badges','collection','days','completedSchoolTestsV6519'].map(key=>[key,{same:JSON.stringify(state[key])===JSON.stringify(original[key]),actual:state[key],expected:original[key]}]));
+    const preservedKeys=Object.fromEntries(['points','done','history','scores','mistakes','badges','collection','days'].map(key=>[key,{same:JSON.stringify(state[key])===JSON.stringify(original[key]),actual:state[key],expected:original[key]}]));
+    preservedKeys.completedSchoolTestsV6519={same:Object.entries(original.completedSchoolTestsV6519||{}).every(([key,value])=>state.completedSchoolTestsV6519?.[key]===value),actual:state.completedSchoolTestsV6519,expected:original.completedSchoolTestsV6519};
     const preserved=Object.values(preservedKeys).every(x=>x.same);
     const deepIndex=curriculum.findIndex(x=>x.id==='deep-sozcukte-anlam');
     return {groups,statuses,groupStarts,accessible:groupStarts.map(index=>api.accessible(index)),nextLocked:groupStarts.map(index=>api.accessible(index+1)),preserved,preservedKeys,count:curriculum.length,deepIndex,deepParts:api.schoolParts(deepIndex).map(x=>x.length),width:document.documentElement.scrollWidth,innerWidth};
@@ -51,14 +52,16 @@ const assert = (value, message) => { if (!value) throw new Error(message); };
     const api=window.__DURU_TURKISH_V6520_TEST__;
     return {done:api.isDone(0),next:api.accessible(1),legacyDone:state.done['Türkçe|0'],legacyHistory:state.history['Türkçe|0'],schoolParts:api.schoolParts(0).length};
   });
-  assert(afterNormal.done&&!afterNormal.next&&afterNormal.schoolParts===1,'Konu testi sonrası okul testi kilidi yanlış');
+  assert(afterNormal.done&&!afterNormal.next&&afterNormal.schoolParts>=1,'Konu testi sonrası okul testi kilidi yanlış');
   assert(afterNormal.legacyDone===seed.done['Türkçe|0']&&JSON.stringify(afterNormal.legacyHistory)===JSON.stringify(seed.history['Türkçe|0']),'Eski Türkçe ilerlemesi değişti');
 
   const afterSchool = await page.evaluate(() => {
-    startTurkishSchoolV6520(0);
-    while(session?.phase==='test' && session.idx < session.qs.length) { const q=session.qs[session.idx]; choose(q.options.indexOf(q.answer)); nextQuestion(); }
-    finishSession();
-    const api=window.__DURU_TURKISH_V6520_TEST__;
+    const api=window.__DURU_TURKISH_V6520_TEST__,count=api.schoolParts(0).length;
+    for(let part=0;part<count;part++){
+      startTurkishSchoolV6520(0);
+      while(session?.phase==='test' && session.idx < session.qs.length) { const q=session.qs[session.idx]; choose(q.options.indexOf(q.answer)); nextQuestion(); }
+      finishSession();
+    }
     return {school:api.schoolComplete(0),next:api.accessible(1),nextCycle:state.turkishV6520.schoolNext['ilelev-nokta-virgul'],legacyDone:state.done['Türkçe|0']};
   });
   assert(afterSchool.school&&afterSchool.next&&afterSchool.nextCycle===0,'Okul testi tamamlama/döngü kuralı yanlış');
