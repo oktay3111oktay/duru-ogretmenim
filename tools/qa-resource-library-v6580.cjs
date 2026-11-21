@@ -70,7 +70,7 @@ const assert = (value, message) => { if (!value) throw new Error(message); };
       if (index < 0) throw new Error('Kaynak bulunamadı: '+sourceName);
       openResourceV6580(index);
     }, name);
-    await page.waitForSelector(selector, {timeout:10000});
+    await page.waitForSelector(selector, {state:'attached',timeout:10000});
     return page.$eval(selector, node => node.getAttribute('src') || node.textContent.trim());
   };
   const previews = {};
