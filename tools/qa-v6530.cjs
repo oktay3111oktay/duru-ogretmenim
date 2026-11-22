@@ -130,7 +130,7 @@ const question = (id, course = 'Matematik', topic = 0) => ({
   const imageLoaded = true;
 
   console.log(JSON.stringify({ url, result, imageLoaded, alerts, errors }, null, 2));
-  assert(result.title.includes('V6.60.0'), 'Sürüm başlığı güncellenmedi');
+  assert(result.title.includes('V6.61.0'), 'Sürüm başlığı güncellenmedi');
   assert(result.inactiveRights === 0 && result.inactive.answered === 0 && result.inactiveAgain === null, 'Başla etkin değilken Körebe hakkı yazıldı veya aynı tamamlama iki kez işlendi');
   assert(result.attempts.first.threshold === 100 && result.attempts.first.earned === 1, 'İlk tamamlama 100 soru kuralı yanlış');
   assert(result.attempts.second.threshold === 150 && result.attempts.second.earned === 1, 'İkinci tamamlama 150 soru kuralı yanlış');
@@ -142,7 +142,7 @@ const question = (id, course = 'Matematik', topic = 0) => ({
   assert(result.repeatLimit.blockedStatus.blocked && result.repeatLimit.blockedPointsAfter === result.repeatLimit.blockedPointsBefore, 'Puan molasındaki test yıldız puanı kazandırdı');
   assert(/başka bir teste geç/i.test(result.repeatLimit.limitNotice) && !result.repeatLimit.otherStatus.blocked, 'Tek seferlik test sınırı uyarısı veya başka testin ödül hakkı yanlış');
   assert(result.homeSnapshot.badgeIndex >= 0 && result.homeSnapshot.rewardIndex === 1, 'Ödüllerim alanı derslerden hemen sonra değil');
-  assert(result.homeSnapshot.text.includes('Ödül Puanı') && result.homeSnapshot.imageSrc.includes('korebe-reward-v6530.png') && imageLoaded, 'Ödüllerim kartı veya Körebe görseli eksik');
+  assert(result.homeSnapshot.text.includes('Ödül Puanı') && result.homeSnapshot.imageSrc.includes('reward-home-v6610.webp') && imageLoaded, 'Ödüllerim kartı veya seçilen ödül görseli eksik');
   assert(!result.homeSnapshot.text.includes('İlk tamamlamada') && !result.homeSnapshot.text.includes('her yeni tamamlanmasında'), 'Ödüllerim kartındaki uzun kural açıklaması kaldırılmadı');
   assert(result.dayReset.rights === result.rightsBeforeDayReset && result.dayReset.progress === 0, 'Gün değişiminde hak koruma veya günlük katkı sıfırlama yanlış');
   assert(result.parent.before.includes('Ödül yönetimi') && !result.parent.hasIncrease, 'Veli Paneli ödül yönetimi yanlış');

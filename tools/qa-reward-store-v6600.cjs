@@ -6,9 +6,12 @@ const { chromium } = require(path.join(modules, 'playwright'));
 const assert = (value, message) => { if (!value) throw new Error(message); };
 
 (async () => {
-  const sprite = path.resolve(__dirname, '../dist/assets/reward-illustrations-v6600.png');
+  const rewardDir = path.resolve(__dirname, '../dist/assets/rewards-v6610');
+  const homeReward = path.resolve(__dirname, '../dist/assets/reward-home-v6610.webp');
   const korebe = path.resolve(__dirname, '../dist/assets/korebe-reward-v6530.png');
-  assert(fs.existsSync(sprite) && fs.statSync(sprite).size > 1000000, 'Ödül görsel paketi eksik');
+  const rewardFiles = fs.readdirSync(rewardDir).filter(file => file.endsWith('.webp'));
+  assert(rewardFiles.length === 10 && rewardFiles.every(file => fs.statSync(path.join(rewardDir,file)).size > 50000), 'Ayrı ödül görselleri eksik');
+  assert(fs.existsSync(homeReward) && fs.statSync(homeReward).size > 300000, 'Ana sayfa ödül görseli eksik');
   assert(fs.existsSync(korebe) && fs.statSync(korebe).size > 100000, 'Mevcut Körebe görseli korunmadı');
 
   const browser = await chromium.launch({
@@ -39,6 +42,8 @@ const assert = (value, message) => { if (!value) throw new Error(message); };
   const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 120000 });
   if (url.startsWith('http')) assert(response?.ok(), 'Canlı uygulama açılamadı');
   await page.waitForFunction(() => window.__DURU_REWARD_STORE_V6600_TEST__ && window.__DURU_REWARDS_V6530_TEST__, undefined, { timeout: 60000 });
+  await page.evaluate(() => openRewardStoreV6600('shop'));
+  await page.waitForFunction(() => [...document.images].every(image => image.complete && image.naturalWidth > 0), undefined, { timeout: 30000 });
 
   const result = await page.evaluate(() => {
     const api = window.__DURU_REWARD_STORE_V6600_TEST__;
@@ -58,13 +63,18 @@ const assert = (value, message) => { if (!value) throw new Error(message); };
       immediatelyAfterCourses: courseGrid?.nextElementSibling === rewardCard,
       homeText: rewardCard?.textContent || '', image: rewardCard?.querySelector('img')?.getAttribute('src') || ''
     };
+    const shopButton = rewardCard?.querySelector('button')?.textContent?.trim() || '';
 
     openRewardStoreV6600('shop');
     const catalog = api.CATALOG.map(item => ({ id: item.id, name: item.name, cost: item.cost, group: item.group }));
     const cards = [...document.querySelectorAll('.reward-shop-card-v6600')].map(card => card.textContent.trim());
     const groups = [...document.querySelectorAll('.reward-group-v6600>h2')].map(node => node.textContent.trim());
     const shopWidth = document.documentElement.scrollWidth;
-    const spriteCount = document.querySelectorAll('.reward-art-sprite-v6600').length;
+    const rewardImages = [...document.querySelectorAll('.reward-shop-card-v6600 img.reward-art-img-v6600')].map(image => ({
+      src:image.getAttribute('src')||'', naturalWidth:image.naturalWidth, naturalHeight:image.naturalHeight,
+      renderedWidth:image.getBoundingClientRect().width, renderedHeight:image.getBoundingClientRect().height,
+      fit:getComputedStyle(image).objectFit
+    }));
 
     const store = api.ensureStore(false).store;
     store.balance = 2000;
@@ -110,7 +120,7 @@ const assert = (value, message) => { if (!value) throw new Error(message); };
     const parentHasAdd = [...document.querySelectorAll('#korebe-parent-v6530 button')].some(button => /artır|ekle/i.test(button.textContent || ''));
     const preserved = { points: state.points, done: state.done['Matematik|0'], badge: state.badges.includes('first'), card: !!state.collection['Korunan kart'] };
     return {
-      title: document.title, original, preserved, order, catalog, cards, groups, shopWidth, innerWidth: window.innerWidth, spriteCount,
+      title: document.title, original, preserved, order, catalog, cards, groups, shopWidth, innerWidth: window.innerWidth, rewardImages, shopButton,
       migrated,
       afterBuy,
       afterUse: { home: afterUse.inventory['evde-sushi'], restaurant: afterUse.inventory['restoranda-sushi'], queue: queueAfterUse, waitDays },
@@ -122,19 +132,27 @@ const assert = (value, message) => { if (!value) throw new Error(message); };
   await page.waitForFunction(() => [...document.images].every(image => image.complete && image.naturalWidth > 0), undefined, { timeout: 30000 });
   const screenshot = path.resolve(__dirname, '../qa-reward-store-v6600-mobile.png');
   await page.screenshot({ path: screenshot, fullPage: true });
+  await page.setViewportSize({ width:1280, height:900 });
+  await page.evaluate(() => openRewardStoreV6600('shop'));
+  const desktopWidths=await page.evaluate(() => [...document.querySelectorAll('.reward-shop-card-v6600')].map(card=>Math.round(card.getBoundingClientRect().width)));
+  const desktopScreenshot = path.resolve(__dirname, '../qa-reward-store-v6610-desktop.png');
+  await page.screenshot({ path: desktopScreenshot, fullPage: true });
 
   const expected = [
     ['korebe',100],['basketbol',250],['masa-tenisi',250],['balon',150],['hazine-avi',300],['sicak-soguk',150],
     ['monopoly',450],['kutu-oyunlari',300],['film-gecesi',400],['evde-sushi',500],['restoranda-sushi',1000]
   ];
-  console.log(JSON.stringify({ url, result, dialogs, errors, screenshot }, null, 2));
-  assert(result.title.includes('V6.60.0'), 'Sürüm başlığı V6.60.0 değil');
+  console.log(JSON.stringify({ url, result, dialogs, errors, screenshot, desktopScreenshot, desktopWidths }, null, 2));
+  assert(result.title.includes('V6.61.0'), 'Sürüm başlığı V6.61.0 değil');
   assert(JSON.stringify(result.catalog.map(item => [item.id,item.cost])) === JSON.stringify(expected), 'Ödül sırası veya puanları yanlış');
   assert(result.order.immediatelyAfterCourses && result.order.rewards >= 0, 'Ödüllerim derslerin hemen arkasında değil');
   assert(result.order.world >= 0 && result.order.badges === result.order.world + 1 && result.order.tools > result.order.badges, 'Rozetlerim Hayal Adası/Duru’nun Dünyası sonrasına taşınmadı');
-  assert(result.order.image.includes('korebe-reward-v6530.png'), 'Mevcut Körebe görseli kullanılmıyor');
+  assert(result.order.image.includes('reward-home-v6610.webp'), 'Seçilen ana sayfa ödül görseli kullanılmıyor');
+  assert(result.shopButton.includes('Ödül Mağazası') && !result.shopButton.includes('Aç'), 'Ana sayfa düğme adı doğru değil');
   assert(result.migrated.korebe === 2 && result.migrated.rights === 2 && result.migrated.balance === 40, 'Eski haklar veya günlük birikim kayıpsız taşınmadı');
-  assert(result.cards.length === 11 && result.spriteCount === 10 && result.groups.length === 4, 'Mağaza kartları veya grupları eksik');
+  assert(result.cards.length === 11 && result.rewardImages.length === 11 && result.groups.length === 4, 'Mağaza kartları veya görselleri eksik');
+  assert(result.rewardImages.every(image => image.naturalWidth > 0 && image.naturalHeight > 0 && image.fit === 'contain'), 'Ödül görsellerinden biri yüklenmedi veya esnetiliyor');
+  assert(result.rewardImages.filter(image => image.src.includes('rewards-v6610')).every(image => Math.abs(image.naturalWidth/image.naturalHeight-1) < .08), 'Yeni ödül görsellerinden biri kare kırpılmamış');
   assert(result.afterBuy.balance === 500 && result.afterBuy.home === 1 && result.afterBuy.restaurant === 1, 'Sushi satın alma puanı veya çanta kaydı yanlış');
   assert(result.afterBuy.queue[0].status === 'ready' && result.afterBuy.queue[1].status === 'queued', 'İki Sushi ödülünün ilk sırası yanlış');
   assert(result.afterUse.home === 0 && result.afterUse.restaurant === 1, 'Kullanılan Sushi çantadan doğru düşmedi');
@@ -145,6 +163,7 @@ const assert = (value, message) => { if (!value) throw new Error(message); };
   assert(result.parentText.includes('Ödül yönetimi') && !result.parentHasAdd, 'Veli ödül yönetiminde artırma aracı olmamalı');
   assert(result.original.done === result.preserved.done && result.original.badge === result.preserved.badge && result.original.card === result.preserved.card, 'Öğrenci ilerleme/rozet/kart verisi değişti');
   assert(result.shopWidth <= result.innerWidth + 1, '390 piksel mobil görünümde yatay taşma var');
+  assert(desktopWidths.every(width=>width<=250), 'Masaüstünde ödül kartlarından biri yeniden esniyor');
   assert(!errors.length, `Tarayıcı hataları: ${JSON.stringify(errors)}`);
   await browser.close();
 })().catch(error => { console.error(error.stack || error); process.exitCode = 1; });
