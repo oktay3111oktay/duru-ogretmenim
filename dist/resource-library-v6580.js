@@ -1,11 +1,45 @@
-/* V6.58.0: Derslere göre MEB/okul kaynak kütüphanesi ve içerik tabanlı tekrar denetimi. */
+/* V6.59.0: Derslere göre kaynak kütüphanesi, içerik tabanlı tekrar denetimi ve dosya indirme. */
 (() => {
   'use strict';
 
-  const VERSION = '6.58.0';
+  const VERSION = '6.59.0';
   const COURSE_ORDER = ['Matematik', 'Türkçe', 'Fen Bilimleri', 'Sosyal Bilgiler', 'Din Kültürü', 'Peygamberimizin Hayatı', 'Almanca', 'İngilizce'];
   const COURSE_ICONS = {Matematik:'📐', Türkçe:'📚', 'Fen Bilimleri':'🧪', 'Sosyal Bilgiler':'🌍', 'Din Kültürü':'🕌', 'Peygamberimizin Hayatı':'🌙', Almanca:'🇩🇪', İngilizce:'🇬🇧'};
   const STOP = new Set('acaba ama ancak artık ayrıca bazı belki ben beni benim beri bile bir biz bize bizim bu buna burada çünkü çok daha da de değil diye dolayı en fakat fakat gibi göre hangi hem hep her hiç için ile ise kadar karşı kendi ki kim mi mı mu mü nasıl ne neden niçin o olan olarak oldu onun onlar önce sonra şu tüm ve veya ya yani yeni'.split(' '));
+  const RELEASE = 'https://github.com/oktay3111oktay/duru-ogretmenim/releases/download/v6.59.0/';
+  const DOWNLOADS = {
+    'matematik5-1.pdf':'https://tymm.meb.gov.tr/assets/pdf/matematik-5sinif-ders-kitabi-1kitap_20261021_185311_419.pdf',
+    'matematik5-2.pdf':'https://tymm.meb.gov.tr/assets/pdf/matematik-5sinif-ders-kitabi-2kitap_20261021_190950_342.pdf',
+    'Matematik EÇK.pdf':RELEASE+'matematik-ekc-1.pdf',
+    'Fenomen Matematik Soru Bankası - 1.pdf':RELEASE+'matematik-fenomen-1.pdf',
+    'Fenomen Matematik Soru Bankası -2.pdf':RELEASE+'matematik-fenomen-2.pdf',
+    'Fenomen Matematik Soru Bankası -3.pdf':RELEASE+'matematik-fenomen-3.pdf',
+    'Türkçe-1.pdf':'https://tymm.meb.gov.tr/assets/pdf/turkce-5sinif-ders-kitabi-1kitap_20261022_081334_211.pdf',
+    'Türkçe - 2.pdf':'https://tymm.meb.gov.tr/assets/pdf/turkce-5sinif-ders-kitabi-2kitap_20261021_221648_843.pdf',
+    'Turkce EÇK - 1.pdf':RELEASE+'turkce-ekc-1.pdf',
+    'Turkce EÇK- 2.pdf':RELEASE+'turkce-ekc-2.pdf',
+    'Türkçe Derin Öğrenme EÇK.pdf':RELEASE+'turkce-derin-ogrenme-ekc-1.pdf',
+    'Nokta-Virgül.pdf':RELEASE+'turkce-nokta-virgul.pdf',
+    'Büyük Harflerin Kullanımı.pdf':RELEASE+'turkce-buyuk-harfler.pdf',
+    'Deyim-Atasözü.pdf':RELEASE+'turkce-deyim-atasozu.pdf',
+    'İkilemeler-Pekiştirmeler.pdf':RELEASE+'turkce-ikilemeler-pekistirmeler.pdf',
+    'İsim - Fiil Ayrımı.pdf':RELEASE+'turkce-isim-fiil-ayrimi.pdf',
+    'fenbilimleri5-1.pdf':'https://tymm.meb.gov.tr/assets/pdf/fen-bilimleri-5sinif-ders-kitabi-1kitap_20261021_210925_690.pdf',
+    'fenbilimleri5-2.pdf':'https://tymm.meb.gov.tr/assets/pdf/fen-bilimleri-5sinif-ders-kitabi-2kitap_20261021_211919_422.pdf',
+    'Fen EÇK.pdf':RELEASE+'fen-bilimleri-ekc-1.pdf',
+    'sosyalbilgiler5-1.pdf':'https://cdn.eba.gov.tr/temel-egitim/yayin/2026-2027/ktp/sosyalbilgiler5-1.pdf',
+    'sosyalbilgiler5-2.pdf':'https://cdn.eba.gov.tr/temel-egitim/yayin/2026-2027/ktp/sosyalbilgiler5-2.pdf',
+    'din-kulturu-ve-ahlak-bilgisi-5sinif-ders-kitabi.pdf':'https://tymm.meb.gov.tr/assets/pdf/din-kulturu-ve-ahlak-bilgisi-5sinif-ders-kitabi_20261003_183932_159.pdf',
+    'din-511-eba.pdf':'assets/din-511-eba.pdf',
+    'din-511-mebi.pdf':'assets/din-511-mebi.pdf',
+    'peygamberimizin-hayati-5sinif-ders-kitabi.pdf':'https://tymm.meb.gov.tr/assets/pdf/peygamberimizin-hayati-5sinif-ders-kitabi_20261003_213845_403.pdf',
+    'almanca5dkckl.pdf':'https://cdn.eba.gov.tr/temel-egitim/yayin/2026-2027/ktp/almanca5dkckl.pdf',
+    'almanca5ckckl.pdf':'https://cdn.eba.gov.tr/temel-egitim/yayin/2026-2027/ktp/almanca5ckckl.pdf',
+    'almanca5okckl.pdf':'https://cdn.eba.gov.tr/temel-egitim/yayin/2026-2027/ktp/almanca5okckl.pdf',
+    'ingilizce5dk.pdf':'https://cdn.eba.gov.tr/temel-egitim/yayin/2026-2027/ktp/ingilizce5dk.pdf',
+    'ingilizce5ck.pdf':'https://cdn.eba.gov.tr/temel-egitim/yayin/2026-2027/ktp/ingilizce5ck.pdf',
+    'ingilizce5ok.pdf':'https://cdn.eba.gov.tr/temel-egitim/yayin/2026-2027/ktp/ingilizce5ok.pdf'
+  };
 
   const fp = (fileHash, contentHash, topics = []) => ({fileHash, contentHash, topicSignature: topics});
   const KNOWN_FINGERPRINTS = {
@@ -173,6 +207,32 @@
     if (o.type === 'pdf') return window.open(o.path, '_blank', 'noopener');
     alert('Bu kaynağın uygulama içi önizlemesi henüz yok.');
   }
+  function saveBlob(blob, name) {
+    const url = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = url; a.download = name || 'kaynak'; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 120000);
+  }
+  async function downloadSource(index) {
+    const row = collect()[index]; if (!row) return;
+    if (row.stored) {
+      const item = (state.materials?.[key(row.stored.course,row.stored.topic)] || [])[row.stored.index];
+      if (!item?.blobId) return alert('Bu kaynağın özgün dosyası bu cihazda saklanmamış.');
+      try {
+        const blob = await v622GetFile(item.blobId);
+        if (!blob) throw new Error('Dosya bu cihazda bulunamadı.');
+        saveBlob(blob, item.originalName || item.name);
+      } catch (error) { alert('Kaynak indirilemedi: ' + error.message); }
+      return;
+    }
+    const url = row.download || DOWNLOADS[row.originalName];
+    if (!url) return alert('Bu kaynağın indirilebilir özgün dosyası henüz bağlı değil.');
+    if (!/^https?:/i.test(url)) {
+      const a = document.createElement('a'); a.href = url; a.download = row.originalName || row.name;
+      document.body.appendChild(a); a.click(); a.remove(); return;
+    }
+    const opened = window.open(url, '_blank', 'noopener');
+    if (!opened) location.href = url;
+  }
   function collect() {
     const seen = new Set(), out = [];
     allStored().forEach(row => {
@@ -182,7 +242,7 @@
     return out.sort((a,b) => COURSE_ORDER.indexOf(a.course)-COURSE_ORDER.indexOf(b.course) || (a.kind==='meb'?-1:1) - (b.kind==='meb'?-1:1) || String(a.name).localeCompare(String(b.name),'tr',{numeric:true}));
   }
   function rowMarkup(row, index) {
-    return `<div class="resource-row-v6580"><div><strong>${esc(row.name)}</strong><small>Asıl dosya: ${esc(row.originalName || row.name)}</small></div><button type="button" onclick="openResourceV6580(${index})">Aç</button></div>`;
+    return `<div class="resource-row-v6580"><div><strong>${esc(row.name)}</strong><small>Asıl dosya: ${esc(row.originalName || row.name)}</small></div><span class="resource-actions-v6590"><button type="button" onclick="openResourceV6580(${index})">Aç</button><button type="button" class="resource-download-v6590" onclick="downloadResourceV6590(${index})">⬇ İndir</button></span></div>`;
   }
   function openLibrary() {
     view = 'resource-library-v6580'; const rows = collect();
@@ -204,15 +264,16 @@
     .resource-head-v6580{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}.resource-head-v6580 h1{margin-bottom:4px}.resource-head-v6580 p{margin:0;color:#b9c7da}
     .resource-library-v6580{display:grid;gap:16px}.resource-course-v6580{padding:16px;border-radius:18px;background:#29364d;border:1px solid #829bc444}.resource-course-v6580>h2{margin:0 0 12px}
     .resource-group-v6580{margin-top:12px;padding:12px;border-radius:14px;background:#1e2b40}.resource-group-v6580 h3{display:flex;justify-content:space-between;margin:0 0 9px;font-size:16px}.resource-group-v6580 h3 span{padding:2px 8px;border-radius:999px;background:#536b91;color:#fff;font-size:12px}
-    .resource-row-v6580{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid #ffffff13}.resource-row-v6580:first-of-type{border-top:0}.resource-row-v6580 div{min-width:0}.resource-row-v6580 strong,.resource-row-v6580 small{display:block}.resource-row-v6580 small{margin-top:3px;color:#aebdd1;overflow-wrap:anywhere}.resource-row-v6580 button{flex:0 0 auto}
+    .resource-row-v6580{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid #ffffff13}.resource-row-v6580:first-of-type{border-top:0}.resource-row-v6580>div{min-width:0}.resource-row-v6580 strong,.resource-row-v6580 small{display:block}.resource-row-v6580 small{margin-top:3px;color:#aebdd1;overflow-wrap:anywhere}.resource-actions-v6590{display:flex;gap:7px;flex:0 0 auto}.resource-download-v6590{background:#2f8d64!important;color:#fff!important;border-color:#75caa7!important}
     .resource-preview-v6580{position:fixed;inset:0;z-index:10050;padding:12px;background:#07111de8;overflow:auto}.resource-preview-v6580>div{max-width:850px;margin:auto;padding:14px;border-radius:18px;background:#1c2c43}.resource-preview-v6580 img{display:block;width:100%;max-height:82vh;object-fit:contain;margin-top:12px;border-radius:10px;background:#fff}
-    @media(min-width:760px){.resource-library-v6580{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:520px){.resource-course-v6580{padding:12px}.resource-row-v6580{align-items:flex-start}.resource-row-v6580 button{padding:9px 12px}}
+    @media(min-width:760px){.resource-library-v6580{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:520px){.resource-course-v6580{padding:12px}.resource-row-v6580{align-items:flex-start;flex-direction:column}.resource-actions-v6590{width:100%}.resource-actions-v6590 button{flex:1;padding:9px 12px}}
   `; document.head.appendChild(style);
 
   window.openResourceLibraryV6580 = openLibrary;
   window.openResourceV6580 = openSource;
+  window.downloadResourceV6590 = downloadSource;
   window.registerTeacherSourceV6580 = registerIntegratedSource;
-  window.__DURU_RESOURCE_LIBRARY_V6580__ = {VERSION, COURSE_ORDER, STATIC, collect, fingerprint, prepareImport, duplicateOf, nextName, registerIntegratedSource, similarity, normalize};
+  window.__DURU_RESOURCE_LIBRARY_V6580__ = {VERSION, COURSE_ORDER, STATIC, DOWNLOADS, collect, fingerprint, prepareImport, duplicateOf, nextName, registerIntegratedSource, similarity, normalize};
   const beforeHome = window.home;
   window.home = home = function() { const result = beforeHome.apply(this, arguments); setTimeout(patchHome, 0); patchHome(); return result; };
   patchHome();

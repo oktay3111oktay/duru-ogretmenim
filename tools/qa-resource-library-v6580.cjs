@@ -26,7 +26,7 @@ const assert = (value, message) => { if (!value) throw new Error(message); };
     badge:state.badges.includes('first'),
     card:!!state.collection['Korunan kart']
   }));
-  assert(/V6\.58\.0/.test(home.title), 'Sürüm başlığı yanlış: '+home.title);
+  assert(/V6\.59\.0/.test(home.title), 'Sürüm başlığı yanlış: '+home.title);
   assert(home.libraryButton === '📚 Kaynak Kütüphanesi', 'Ana sayfa kaynak düğmesi yanlış: '+home.libraryButton);
   assert(home.gds === 'Genel Değerlendirme Sınavı', 'Ana sayfa GDS adı yanlış: '+home.gds);
   assert(home.points === 321 && home.badge && home.card, 'Öğrenci verisi korunmadı');
@@ -44,6 +44,9 @@ const assert = (value, message) => { if (!value) throw new Error(message); };
       courseOrder:courses.map(x => x.dataset.course),
       groups:courses.map(x => ({course:x.dataset.course,heads:[...x.querySelectorAll('.resource-group-v6580 h3')].map(h => h.childNodes[0].textContent.trim())})),
       hasUpload:[...document.querySelectorAll('button')].some(b => /yükle|dosya seç/i.test(b.textContent)),
+      downloadButtons:document.querySelectorAll('.resource-download-v6590').length,
+      rowCount:rows.length,
+      missingDownloads:rows.filter(row => !row.stored && !row.download && !api.DOWNLOADS[row.originalName]).map(row => row.name),
       turkish:rows.filter(x => x.course === 'Türkçe').map(x => x.name),
       math:rows.filter(x => x.course === 'Matematik').map(x => x.name),
       din:rows.filter(x => x.course === 'Din Kültürü').map(x => x.name),
@@ -55,6 +58,8 @@ const assert = (value, message) => { if (!value) throw new Error(message); };
   assert(JSON.stringify(library.courseOrder) === JSON.stringify(['Matematik','Türkçe','Fen Bilimleri','Sosyal Bilgiler','Din Kültürü','Peygamberimizin Hayatı','Almanca','İngilizce']), 'Ders sırası yanlış: '+JSON.stringify(library.courseOrder));
   assert(library.groups.every(x => JSON.stringify(x.heads) === JSON.stringify(['MEB Kaynakları','Okul Kaynakları'])), 'Kaynak grupları eksik');
   assert(!library.hasUpload, 'Kaynak Kütüphanesi gereksiz yükleme düğmesi içeriyor');
+  assert(library.downloadButtons === library.rowCount, 'Her kaynak için indirme düğmesi yok');
+  assert(library.missingDownloads.length === 0, 'İndirme bağlantısı olmayan kaynaklar: '+library.missingDownloads.join(', '));
   assert(library.turkish.includes('Türkçe EKÇ-1') && library.turkish.includes('Türkçe EKÇ-2'), 'Türkçe EKÇ adları eksik');
   assert(library.math.includes('Matematik EKÇ-1') && library.math.filter(x => /Fenomen/.test(x)).length === 3, 'Matematik okul kaynakları eksik');
   assert(library.din.includes('Din Kültürü EBA-1') && library.din.includes('Din Kültürü MEBİ-1'), 'Din okul kaynakları eksik');
@@ -75,6 +80,8 @@ const assert = (value, message) => { if (!value) throw new Error(message); };
   };
   const previews = {};
   previews.math = await openByName('Matematik MEB-1', '#meb-source-overlay-v618 img');
+  const fullPdf = await page.$eval('#meb-source-overlay-v618 a', a => a.href);
+  assert(/^https:\/\/tymm\.meb\.gov\.tr\/assets\/pdf\//.test(fullPdf), 'Tam PDF bağlantısı resmî MEB adresine bağlı değil: '+fullPdf);
   await page.evaluate(() => closeMebSourceV618());
   previews.turkishSchool = await openByName('Türkçe Okul Materyali - Nokta ve Virgül', '#resource-preview-v6580 img');
   await page.evaluate(() => document.getElementById('resource-preview-v6580')?.remove());
