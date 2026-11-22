@@ -42,7 +42,7 @@ const assert = (value, message) => { if (!value) throw new Error(message); };
     return { rendered, width:document.documentElement.scrollWidth, innerWidth:window.innerWidth, text:app.textContent };
   });
   const galleryShot=path.resolve(__dirname,'../qa-badge-variety-v6610-gallery.png');
-  await page.screenshot({path:galleryShot,fullPage:true});
+  await page.screenshot({path:galleryShot,fullPage:true,timeout:120000});
 
   const editor = await page.evaluate(() => {
     badgeStudio('first');
@@ -66,7 +66,7 @@ const assert = (value, message) => { if (!value) throw new Error(message); };
   });
   const badgeStudioShot=path.resolve(__dirname,'../qa-badge-variety-v6610-editor.png');
   await page.evaluate(() => badgeStudio('first'));
-  await page.screenshot({path:badgeStudioShot,fullPage:true});
+  await page.screenshot({path:badgeStudioShot,fullPage:true,timeout:120000});
 
   const pairs=new Set(gallery.rendered.map(item=>`${item.character}|${item.frame}|${item.accessory}|${item.pattern}`));
   console.log(JSON.stringify({url,gallery,editor,errors,galleryShot,badgeStudioShot},null,2));
