@@ -108,7 +108,7 @@ const assert = (value, message) => { if (!value) throw new Error(message); };
     };
   });
 
-  assert(audit.title.includes('V6.58.0'), 'Sürüm başlığı V6.58.0 değil');
+  assert(audit.title.includes('V6.60.0'), 'Sürüm başlığı V6.60.0 değil');
   assert(audit.invalid.length === 0, `Soru bankası hataları: ${audit.invalid.slice(0, 8).join(' | ')}`);
   for (const courseName of ['Almanca', 'İngilizce']) {
     const row = audit.summary[courseName];

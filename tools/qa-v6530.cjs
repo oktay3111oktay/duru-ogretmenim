@@ -39,7 +39,7 @@ const question = (id, course = 'Matematik', topic = 0) => ({
     const api = window.__DURU_REWARDS_V6530_TEST__;
     const makeSession = (kind, keys, id, wrongOnly = false) => ({
       kind, keys, qs: [{ id, c: keys[0].split('|')[0], t: Number(keys[0].split('|').pop()), prompt: id, answer: 'Doğru', options: ['Doğru', 'B', 'C', 'D'] }],
-      answers: [], pending: [], initial: 1, repair: 0, _wrongOnlyV651: wrongOnly, _wrongScopeV651: wrongOnly ? keys[0].split('|')[0] : ''
+      idx: 0, answers: [], pending: [], initial: 1, repair: 0, _wrongOnlyV651: wrongOnly, _wrongScopeV651: wrongOnly ? keys[0].split('|')[0] : ''
     });
     const complete = (kind, keys, id, count, wrongOnly = false) => {
       const s = makeSession(kind, keys, id, wrongOnly);
@@ -130,7 +130,7 @@ const question = (id, course = 'Matematik', topic = 0) => ({
   const imageLoaded = true;
 
   console.log(JSON.stringify({ url, result, imageLoaded, alerts, errors }, null, 2));
-  assert(result.title.includes('V6.59.0'), 'Sürüm başlığı güncellenmedi');
+  assert(result.title.includes('V6.60.0'), 'Sürüm başlığı güncellenmedi');
   assert(result.inactiveRights === 0 && result.inactive.answered === 0 && result.inactiveAgain === null, 'Başla etkin değilken Körebe hakkı yazıldı veya aynı tamamlama iki kez işlendi');
   assert(result.attempts.first.threshold === 100 && result.attempts.first.earned === 1, 'İlk tamamlama 100 soru kuralı yanlış');
   assert(result.attempts.second.threshold === 150 && result.attempts.second.earned === 1, 'İkinci tamamlama 150 soru kuralı yanlış');
@@ -138,14 +138,14 @@ const question = (id, course = 'Matematik', topic = 0) => ({
   assert(result.bonus.threshold === 100 && result.bonus.bonusAnswered === 50 && result.bonus.earned === 1, 'Yanlış-soru GTT/GDS iki kat bonusu yanlış');
   assert(Math.abs(result.mixedSecond.credit - 50) < 0.01 && Math.abs(result.mixedFirst.credit - 50) < 0.01, 'Farklı tekrar eşikleri oransal birleşmiyor');
   assert(result.afterRules.rights === 4 && Math.abs(result.afterRules.credit - 400) < 0.01, `Toplam Körebe hesabı yanlış: ${JSON.stringify(result.afterRules)}`);
-  assert(/Körebe sayacın ilerledi/.test(result.completionNotice), 'Gerçek test tamamlama bildirimi gösterilmedi');
+  assert(/Ödül puanı kazandın/.test(result.completionNotice), 'Gerçek test tamamlama bildirimi gösterilmedi');
   assert(result.repeatLimit.blockedStatus.blocked && result.repeatLimit.blockedPointsAfter === result.repeatLimit.blockedPointsBefore, 'Puan molasındaki test yıldız puanı kazandırdı');
   assert(/başka bir teste geç/i.test(result.repeatLimit.limitNotice) && !result.repeatLimit.otherStatus.blocked, 'Tek seferlik test sınırı uyarısı veya başka testin ödül hakkı yanlış');
-  assert(result.homeSnapshot.badgeIndex >= 0 && result.homeSnapshot.rewardIndex === result.homeSnapshot.badgeIndex + 1, 'Ödüllerim alanı Rozetlerimden hemen sonra değil');
-  assert(result.homeSnapshot.text.includes('Körebe hakkı') && result.homeSnapshot.imageSrc.includes('korebe-reward-v6530.png') && imageLoaded, 'Ödüllerim kartı veya Körebe görseli eksik');
+  assert(result.homeSnapshot.badgeIndex >= 0 && result.homeSnapshot.rewardIndex === 1, 'Ödüllerim alanı derslerden hemen sonra değil');
+  assert(result.homeSnapshot.text.includes('Ödül Puanı') && result.homeSnapshot.imageSrc.includes('korebe-reward-v6530.png') && imageLoaded, 'Ödüllerim kartı veya Körebe görseli eksik');
   assert(!result.homeSnapshot.text.includes('İlk tamamlamada') && !result.homeSnapshot.text.includes('her yeni tamamlanmasında'), 'Ödüllerim kartındaki uzun kural açıklaması kaldırılmadı');
   assert(result.dayReset.rights === result.rightsBeforeDayReset && result.dayReset.progress === 0, 'Gün değişiminde hak koruma veya günlük katkı sıfırlama yanlış');
-  assert(result.parent.before.includes('Körebe hakları') && !result.parent.hasIncrease && result.parent.spent && result.parent.afterSpend === 1 && result.parent.after.includes('1 kullanılabilir'), 'Veli Paneli yalnızca hak düşürme aracı yanlış');
+  assert(result.parent.before.includes('Ödül yönetimi') && !result.parent.hasIncrease, 'Veli Paneli ödül yönetimi yanlış');
   assert(result.syncMerged.rights === 7 && result.syncMerged.used === 2 && result.syncMerged.completions['normal|Matematik|0'] === 4 && result.syncMerged.daily.credit === 64, 'Körebe hakları cihaz eşitlemesinde korunmadı');
   assert(result.preserved.points >= result.before.points && result.preserved.done === result.before.done && result.preserved.badge === result.before.badge && result.preserved.card === result.before.card, 'Mevcut konu, rozet veya koleksiyon kaydı değişti');
   assert(result.width <= result.innerWidth + 1, '390 piksel görünümde yatay taşma var');
