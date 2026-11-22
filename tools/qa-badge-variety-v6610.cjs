@@ -32,27 +32,27 @@ const assert = (value, message) => { if (!value) throw new Error(message); };
   const url = process.env.QA_URL || pathToFileURL(path.resolve(__dirname, '../dist/index.html')).href;
   const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 120000 });
   if (url.startsWith('http')) assert(response?.ok(), 'Canlı uygulama açılamadı');
-  await page.waitForFunction(() => window.__DURU_BADGE_VARIETY_V6610_TEST__, undefined, { timeout: 60000 });
+  await page.waitForFunction(() => window.__DURU_BADGE_VARIETY_V6620_TEST__, undefined, { timeout: 60000 });
 
   const gallery = await page.evaluate(() => {
     badges();
-    const rendered=[...document.querySelectorAll('.badge-variety-v6610')].map(svg=>({
-      character:svg.dataset.character, frame:svg.dataset.frame, accessory:svg.dataset.accessory, pattern:svg.dataset.pattern
+    const rendered=[...document.querySelectorAll('.badge-cutout-v6620')].map(svg=>({
+      character:svg.dataset.character, accessory:svg.dataset.accessory, pattern:svg.dataset.pattern,
+      singlePiece:svg.dataset.singlePiece, hasFrame:!!svg.querySelector('defs,linearGradient,[filter]')
     }));
     return { rendered, width:document.documentElement.scrollWidth, innerWidth:window.innerWidth, text:app.textContent };
   });
-  const galleryShot=path.resolve(__dirname,'../qa-badge-variety-v6610-gallery.png');
+  const galleryShot=path.resolve(__dirname,'../qa-badge-variety-v6620-gallery.png');
   await page.screenshot({path:galleryShot,fullPage:true,timeout:120000});
 
   const editor = await page.evaluate(() => {
     badgeStudio('first');
-    const controls=[...document.querySelectorAll('.badge-variety-controls-v6610 select,.badge-variety-controls-v6610 input')];
-    badgeVarietySetV6610('variantCharacter','robot');
-    badgeVarietySetV6610('frameStyle','shield');
-    badgeVarietySetV6610('accessoryStyle','crown');
-    badgeVarietySetV6610('expressionStyle','surprised');
-    badgeVarietySetV6610('eyeStyle','three');
-    badgeVarietySetV6610('patternStyle','stars');
+    const controls=[...document.querySelectorAll('.badge-variety-controls-v6620 select,.badge-variety-controls-v6620 input')];
+    badgeVarietySetV6620('variantCharacter','robot');
+    badgeVarietySetV6620('accessoryStyle','glasses');
+    badgeVarietySetV6620('expressionStyle','surprised');
+    badgeVarietySetV6620('eyeStyle','three');
+    badgeVarietySetV6620('patternStyle','spots');
     document.getElementById('badgeTitleInput').value='Robot Şampiyon';
     document.getElementById('badgeTitleInput').dispatchEvent(new Event('input',{bubbles:true}));
     document.getElementById('badgePromptInput').value='Parlak ve çok neşeli olsun';
@@ -64,18 +64,19 @@ const assert = (value, message) => { if (!value) throw new Error(message); };
       width:document.documentElement.scrollWidth, innerWidth:window.innerWidth
     };
   });
-  const badgeStudioShot=path.resolve(__dirname,'../qa-badge-variety-v6610-editor.png');
+  const badgeStudioShot=path.resolve(__dirname,'../qa-badge-variety-v6620-editor.png');
   await page.evaluate(() => badgeStudio('first'));
   await page.screenshot({path:badgeStudioShot,fullPage:true,timeout:120000});
 
-  const pairs=new Set(gallery.rendered.map(item=>`${item.character}|${item.frame}|${item.accessory}|${item.pattern}`));
+  const pairs=new Set(gallery.rendered.map(item=>`${item.character}|${item.accessory}|${item.pattern}`));
   console.log(JSON.stringify({url,gallery,editor,errors,galleryShot,badgeStudioShot},null,2));
   assert(gallery.rendered.length===4, 'Kaydedilmiş rozetlerin tamamı çizilmedi');
   assert(pairs.size>=3, 'Aynı rozet biçimi tekrar ediliyor; çeşitlilik yetersiz');
+  assert(gallery.rendered.every(item=>item.singlePiece==='true'&&!item.hasFrame), 'Rozetlerden biri tek parça değil veya dış çerçeve içeriyor');
   assert(gallery.width<=gallery.innerWidth+1, 'Rozet galerisinde mobil yatay taşma var');
-  assert(editor.controlCount===8, 'Karakter, biçim, aksesuar, ifade, göz, desen ve renk kontrolleri eksik');
-  assert(editor.saved.variantCharacter==='robot' && editor.saved.frameStyle==='shield' && editor.saved.accessoryStyle==='crown', 'Rozet karakter/biçim/aksesuar seçimi kaydedilmedi');
-  assert(editor.saved.eyeStyle==='three' && editor.saved.patternStyle==='stars' && editor.saved.title==='Robot Şampiyon', 'Rozet ayrıntıları kaydedilmedi');
+  assert(editor.controlCount===7, 'Karakter, aksesuar, ifade, göz, desen ve renk kontrolleri eksik');
+  assert(editor.saved.variantCharacter==='robot' && editor.saved.accessoryStyle==='glasses' && !editor.saved.frameStyle, 'Çerçevesiz rozet karakteri veya aksesuarı doğru kaydedilmedi');
+  assert(editor.saved.eyeStyle==='three' && editor.saved.patternStyle==='spots' && editor.saved.title==='Robot Şampiyon', 'Rozet ayrıntıları kaydedilmedi');
   assert(editor.points===321 && editor.done && editor.card && editor.badgeCount===4, 'Puan, ilerleme, kart veya rozet kaydı değişti');
   assert(editor.width<=editor.innerWidth+1, 'Rozet atölyesinde mobil yatay taşma var');
   assert(!errors.length, `Tarayıcı hataları: ${JSON.stringify(errors)}`);

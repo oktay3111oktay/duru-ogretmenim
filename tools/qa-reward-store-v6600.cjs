@@ -10,7 +10,7 @@ const assert = (value, message) => { if (!value) throw new Error(message); };
   const homeReward = path.resolve(__dirname, '../dist/assets/reward-home-v6610.webp');
   const korebe = path.resolve(__dirname, '../dist/assets/korebe-reward-v6530.png');
   const rewardFiles = fs.readdirSync(rewardDir).filter(file => file.endsWith('.webp'));
-  assert(rewardFiles.length === 10 && rewardFiles.every(file => fs.statSync(path.join(rewardDir,file)).size > 50000), 'Ayrı ödül görselleri eksik');
+  assert(rewardFiles.length === 11 && rewardFiles.every(file => fs.statSync(path.join(rewardDir,file)).size > 50000), 'Ayrı ödül görselleri eksik');
   assert(fs.existsSync(homeReward) && fs.statSync(homeReward).size > 300000, 'Ana sayfa ödül görseli eksik');
   assert(fs.existsSync(korebe) && fs.statSync(korebe).size > 100000, 'Mevcut Körebe görseli korunmadı');
 
@@ -135,25 +135,30 @@ const assert = (value, message) => { if (!value) throw new Error(message); };
   await page.setViewportSize({ width:1280, height:900 });
   await page.evaluate(() => openRewardStoreV6600('shop'));
   const desktopWidths=await page.evaluate(() => [...document.querySelectorAll('.reward-shop-card-v6600')].map(card=>Math.round(card.getBoundingClientRect().width)));
-  const desktopScreenshot = path.resolve(__dirname, '../qa-reward-store-v6610-desktop.png');
+  const desktopGroups=await page.evaluate(() => [...document.querySelectorAll('.reward-group-v6600')].map(group=>({
+    name:group.querySelector('h2')?.textContent?.trim()||'',
+    costs:[...group.querySelectorAll('.reward-shop-card-v6600')].map(card=>Number((card.querySelector('.reward-price-v6600')?.textContent||'').replace(/\D/g,''))),
+    tops:[...group.querySelectorAll('.reward-shop-card-v6600')].map(card=>Math.round(card.getBoundingClientRect().top))
+  })));
+  const desktopScreenshot = path.resolve(__dirname, '../qa-reward-store-v6620-desktop.png');
   await page.screenshot({ path: desktopScreenshot, fullPage: true });
 
   const expected = [
-    ['korebe',100],['basketbol',250],['masa-tenisi',250],['balon',150],['hazine-avi',300],['sicak-soguk',150],
-    ['monopoly',450],['kutu-oyunlari',300],['film-gecesi',400],['evde-sushi',500],['restoranda-sushi',1000]
+    ['korebe',100],['balon',150],['basketbol',350],['masa-tenisi',350],['sicak-soguk',150],['hazine-avi',300],
+    ['kutu-oyunlari',300],['monopoly',450],['patlamis-misir',200],['film-gecesi',400],['evde-sushi',750],['restoranda-sushi',1000]
   ];
-  console.log(JSON.stringify({ url, result, dialogs, errors, screenshot, desktopScreenshot, desktopWidths }, null, 2));
-  assert(result.title.includes('V6.61.0'), 'Sürüm başlığı V6.61.0 değil');
+  console.log(JSON.stringify({ url, result, dialogs, errors, screenshot, desktopScreenshot, desktopWidths, desktopGroups }, null, 2));
+  assert(result.title.includes('V6.62.0'), 'Sürüm başlığı V6.62.0 değil');
   assert(JSON.stringify(result.catalog.map(item => [item.id,item.cost])) === JSON.stringify(expected), 'Ödül sırası veya puanları yanlış');
   assert(result.order.immediatelyAfterCourses && result.order.rewards >= 0, 'Ödüllerim derslerin hemen arkasında değil');
   assert(result.order.world >= 0 && result.order.badges === result.order.world + 1 && result.order.tools > result.order.badges, 'Rozetlerim Hayal Adası/Duru’nun Dünyası sonrasına taşınmadı');
   assert(result.order.image.includes('reward-home-v6610.webp'), 'Seçilen ana sayfa ödül görseli kullanılmıyor');
   assert(result.shopButton.includes('Ödül Mağazası') && !result.shopButton.includes('Aç'), 'Ana sayfa düğme adı doğru değil');
   assert(result.migrated.korebe === 2 && result.migrated.rights === 2 && result.migrated.balance === 40, 'Eski haklar veya günlük birikim kayıpsız taşınmadı');
-  assert(result.cards.length === 11 && result.rewardImages.length === 11 && result.groups.length === 4, 'Mağaza kartları veya görselleri eksik');
+  assert(result.cards.length === 12 && result.rewardImages.length === 12 && result.groups.length === 4, 'Mağaza kartları veya görselleri eksik');
   assert(result.rewardImages.every(image => image.naturalWidth > 0 && image.naturalHeight > 0 && image.fit === 'contain'), 'Ödül görsellerinden biri yüklenmedi veya esnetiliyor');
   assert(result.rewardImages.filter(image => image.src.includes('rewards-v6610')).every(image => Math.abs(image.naturalWidth/image.naturalHeight-1) < .08), 'Yeni ödül görsellerinden biri kare kırpılmamış');
-  assert(result.afterBuy.balance === 500 && result.afterBuy.home === 1 && result.afterBuy.restaurant === 1, 'Sushi satın alma puanı veya çanta kaydı yanlış');
+  assert(result.afterBuy.balance === 250 && result.afterBuy.home === 1 && result.afterBuy.restaurant === 1, 'Sushi satın alma puanı veya çanta kaydı yanlış');
   assert(result.afterBuy.queue[0].status === 'ready' && result.afterBuy.queue[1].status === 'queued', 'İki Sushi ödülünün ilk sırası yanlış');
   assert(result.afterUse.home === 0 && result.afterUse.restaurant === 1, 'Kullanılan Sushi çantadan doğru düşmedi');
   assert(result.afterUse.queue[0].status === 'used' && result.afterUse.queue[1].status === 'waiting' && result.afterUse.waitDays === 30, 'Sonraki Sushi ödülünün 30 günlük süresi başlamadı');
@@ -164,6 +169,9 @@ const assert = (value, message) => { if (!value) throw new Error(message); };
   assert(result.original.done === result.preserved.done && result.original.badge === result.preserved.badge && result.original.card === result.preserved.card, 'Öğrenci ilerleme/rozet/kart verisi değişti');
   assert(result.shopWidth <= result.innerWidth + 1, '390 piksel mobil görünümde yatay taşma var');
   assert(desktopWidths.every(width=>width<=250), 'Masaüstünde ödül kartlarından biri yeniden esniyor');
+  assert(desktopGroups.every(group=>group.costs.every((cost,index)=>!index||cost>=group.costs[index-1])), 'Ödüller gruplarında düşük puandan yüksek puana sıralı değil');
+  const movement=desktopGroups.find(group=>group.name.includes('Hareketli Oyunlar'));
+  assert(movement?.tops.length===4 && new Set(movement.tops).size===1, 'Hareketli Oyunların dört ödülü masaüstünde yan yana değil');
   assert(!errors.length, `Tarayıcı hataları: ${JSON.stringify(errors)}`);
   await browser.close();
 })().catch(error => { console.error(error.stack || error); process.exitCode = 1; });

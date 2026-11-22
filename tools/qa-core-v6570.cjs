@@ -40,7 +40,7 @@ const fail=message=>{throw new Error(message)};
     }
     return out;
   });
-  if(!/V6\.61\.0/.test(audit.title))fail('Sürüm başlığı yanlış');
+  if(!/V6\.62\.0/.test(audit.title))fail('Sürüm başlığı yanlış');
   if(audit.invalid.length||audit.duplicates.length)fail(JSON.stringify({invalid:audit.invalid,duplicates:audit.duplicates},null,2));
   if(audit.courses['Matematik'].some(x=>x.normal<15))fail('Matematik normal havuzu 15 sorudan az: '+JSON.stringify(audit.courses['Matematik'].filter(x=>x.normal<15)));
   if(audit.courses['Fen Bilimleri'].some(x=>x.normal<30))fail('Fen normal havuzu 30 sorudan az');

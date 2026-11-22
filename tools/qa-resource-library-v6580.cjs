@@ -26,7 +26,7 @@ const assert = (value, message) => { if (!value) throw new Error(message); };
     badge:state.badges.includes('first'),
     card:!!state.collection['Korunan kart']
   }));
-  assert(/V6\.61\.0/.test(home.title), 'Sürüm başlığı yanlış: '+home.title);
+  assert(/V6\.62\.0/.test(home.title), 'Sürüm başlığı yanlış: '+home.title);
   assert(home.libraryButton === '📚 Kaynak Kütüphanesi', 'Ana sayfa kaynak düğmesi yanlış: '+home.libraryButton);
   assert(home.gds === 'Genel Değerlendirme Sınavı', 'Ana sayfa GDS adı yanlış: '+home.gds);
   assert(home.points === 321 && home.badge && home.card, 'Öğrenci verisi korunmadı');
