@@ -1,4 +1,4 @@
-/* V6.62.0: Oduller puana gore sirali; yeni puanlar ve Patlamis Misir odulu. */
+/* V6.63.0: Odul bakiyesi kurtarma ve cihazlar arasi kayipsiz esitleme. */
 (() => {
   'use strict';
 
@@ -37,12 +37,15 @@
   }
 
   function addTransaction(store, type, amount, rewardId = '', label = '') {
-    store.transactions.unshift({id:`rw-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,type,amount:round(amount),rewardId,label,date:nowIso()});
+    const date = nowIso();
+    store.transactions.unshift({id:`rw-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,type,amount:round(amount),rewardId,label,date});
     store.transactions = store.transactions.slice(0,20);
+    store.updatedAt = date;
   }
 
   function ensureStore(save = false) {
     const reward = legacy?.ensureReward?.(false) || (state[FIELD] = state[FIELD] || {});
+    const hadStore = !!(reward[STORE_FIELD] && typeof reward[STORE_FIELD] === 'object');
     let store = reward[STORE_FIELD] && typeof reward[STORE_FIELD] === 'object' ? reward[STORE_FIELD] : {};
     let changed = reward[STORE_FIELD] !== store;
     store.version = 6600;
@@ -63,6 +66,23 @@
       if (partial) store.balance = round(store.balance + partial);
       store.migratedLegacyRights = true;
       store.migratedAt = nowIso();
+      store.updatedAt = store.migratedAt;
+      changed = true;
+    }
+    if (!store.updatedAt) {
+      store.updatedAt = String(store.transactions[0]?.date || store.migratedAt || '');
+      if (store.updatedAt) changed = true;
+    }
+    if (hadStore && !store.recoveryV6630) {
+      const before = round(store.balance);
+      store.balance = Math.max(before,20);
+      const appliedAt = nowIso();
+      store.recoveryV6630 = {targetBalance:20,added:round(store.balance-before),appliedAt,reason:'approved-missing-reward-recovery'};
+      if (store.balance > before) {
+        store.transactions.unshift({id:'rw-recovery-v6630',type:'recovery',amount:round(store.balance-before),rewardId:'',label:'Onaylı kayıp ödül puanı kurtarma',date:appliedAt});
+        store.transactions = store.transactions.slice(0,20);
+      }
+      store.updatedAt = appliedAt;
       changed = true;
     }
     CATALOG.forEach(item => { store.inventory[item.id] = integer(store.inventory[item.id]); });

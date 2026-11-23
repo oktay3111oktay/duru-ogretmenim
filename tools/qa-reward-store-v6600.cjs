@@ -27,7 +27,7 @@ const assert = (value, message) => { if (!value) throw new Error(message); };
     migrations: { mathOfficialV67: true }, wrongQuestionLogV651: [], wrongGttMasteryV6519: {},
     blindMansBuffRewardsV6530: {
       rights: 2, used: 0, updatedAt: '2026-11-22T09:00:00.000Z', completions: {}, testLimits: {},
-      daily: { day: '2026-11-22', credit: 40, earned: 0, answered: 40, bonusAnswered: 0, completedTests: 0 }
+      daily: { day: new Date().toLocaleDateString('en-CA'), credit: 40, earned: 0, answered: 40, bonusAnswered: 0, completedTests: 0 }
     }
   };
   await context.addInitScript(value => {
@@ -119,12 +119,15 @@ const assert = (value, message) => { if (!value) throw new Error(message); };
     const parentText = document.getElementById('korebe-parent-v6530')?.textContent || '';
     const parentHasAdd = [...document.querySelectorAll('#korebe-parent-v6530 button')].some(button => /artır|ekle/i.test(button.textContent || ''));
     const preserved = { points: state.points, done: state.done['Matematik|0'], badge: state.badges.includes('first'), card: !!state.collection['Korunan kart'] };
+    state.blindMansBuffRewardsV6530.rewardStoreV6600 = {version:6600,balance:0,inventory:{},sushiQueue:[],transactions:[],daily:{day:new Date().toLocaleDateString('en-CA'),points:0,correct:0,bonusCorrect:0,updatedAt:new Date().toISOString()},migratedLegacyRights:true,migratedAt:'2026-11-22T00:00:00.000Z'};
+    const recovered = api.ensureStore(false).store;
     return {
       title: document.title, original, preserved, order, catalog, cards, groups, shopWidth, innerWidth: window.innerWidth, rewardImages, shopButton,
       migrated,
       afterBuy,
       afterUse: { home: afterUse.inventory['evde-sushi'], restaurant: afterUse.inventory['restoranda-sushi'], queue: queueAfterUse, waitDays },
-      pointMeta, actualAward, parentText, parentHasAdd
+      pointMeta, actualAward, parentText, parentHasAdd,
+      recovered:{balance:recovered.balance,marker:recovered.recoveryV6630,transactions:recovered.transactions,updatedAt:recovered.updatedAt}
     };
   });
 
@@ -148,7 +151,7 @@ const assert = (value, message) => { if (!value) throw new Error(message); };
     ['kutu-oyunlari',300],['monopoly',450],['patlamis-misir',200],['film-gecesi',400],['evde-sushi',750],['restoranda-sushi',1000]
   ];
   console.log(JSON.stringify({ url, result, dialogs, errors, screenshot, desktopScreenshot, desktopWidths, desktopGroups }, null, 2));
-  assert(result.title.includes('V6.62.0'), 'Sürüm başlığı V6.62.0 değil');
+  assert(result.title.includes('V6.63.0'), 'Sürüm başlığı V6.63.0 değil');
   assert(JSON.stringify(result.catalog.map(item => [item.id,item.cost])) === JSON.stringify(expected), 'Ödül sırası veya puanları yanlış');
   assert(result.order.immediatelyAfterCourses && result.order.rewards >= 0, 'Ödüllerim derslerin hemen arkasında değil');
   assert(result.order.world >= 0 && result.order.badges === result.order.world + 1 && result.order.tools > result.order.badges, 'Rozetlerim Hayal Adası/Duru’nun Dünyası sonrasına taşınmadı');
@@ -165,6 +168,7 @@ const assert = (value, message) => { if (!value) throw new Error(message); };
   assert(result.pointMeta.normalCorrect && !result.pointMeta.normalWrong && result.pointMeta.normal.rawPoints === 1, 'Normal doğru/yanlış ödül puanı kuralı yanlış');
   assert(result.pointMeta.bonusCorrect && result.pointMeta.wrongOnly.rawPoints === 2, 'Yanlış sorulardan GTT/GDS iki kat puan vermiyor');
   assert(result.actualAward.after === result.actualAward.before + 1 && /Ödül puanı kazandın/.test(result.actualAward.notice), 'Gerçek test akışında ödül puanı yazılmadı');
+  assert(result.recovered.balance === 20 && result.recovered.marker?.added === 20 && result.recovered.transactions.some(row=>row.id==='rw-recovery-v6630') && result.recovered.updatedAt, 'Onaylı 20 ödül puanı kurtarması tek seferlik uygulanmadı');
   assert(result.parentText.includes('Ödül yönetimi') && !result.parentHasAdd, 'Veli ödül yönetiminde artırma aracı olmamalı');
   assert(result.original.done === result.preserved.done && result.original.badge === result.preserved.badge && result.original.card === result.preserved.card, 'Öğrenci ilerleme/rozet/kart verisi değişti');
   assert(result.shopWidth <= result.innerWidth + 1, '390 piksel mobil görünümde yatay taşma var');

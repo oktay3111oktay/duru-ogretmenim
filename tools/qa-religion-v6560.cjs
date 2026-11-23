@@ -49,7 +49,7 @@ const assert=(value,message)=>{if(!value)throw Error(message)};
     const syncMerged=window.__DURU_SYNC_V646_TEST__.conservativeInitialMerge({appState:{religionBankV6560:{attempts:{'Din Kültürü|0|normal':1},updatedAt:'2026-11-18T10:00:00.000Z'}},aux:{}},{appState:{religionBankV6560:{attempts:{'Din Kültürü|0|normal':3,'Peygamberimizin Hayatı|0|normal':2},updatedAt:'2026-11-19T10:00:00.000Z'}},aux:{}}).appState.religionBankV6560;
     return {title:document.title,summary,invalid,school,schoolInvalid,schoolOriginal:schoolOriginal.length,schoolParts,migratedSecondSchool:!!state.completedSchoolTestsV6519['Din Kültürü|0|1'],ui:{dinOverview,hayatOverview,dinTopicCounts,hayatTopicCounts,sourceText,expectedDinSource,openedDinSource,expectedHayatSource,openedHayatSource},rotation:{firstIds,secondIds,same:firstIds.join('|')===secondIds.join('|')},syncMerged,preserved:{points:state.points,badge:state.badges.includes('first'),badgeDesign:!!state.badgeDesigns.first,collection:!!state.collection.kept},width:document.documentElement.scrollWidth,innerWidth};
   });
-  assert(audit.title.includes('V6.62.0'),'Sürüm başlığı yanlış');
+  assert(audit.title.includes('V6.63.0'),'Sürüm başlığı yanlış');
   assert(!audit.invalid.length,`Soru bankası hataları: ${audit.invalid.slice(0,10).join(' | ')}`);
   assert(audit.summary['Din Kültürü'].topics===18&&audit.summary['Din Kültürü'].questions===436,'Din Kültürü sayıları yanlış');
   assert(audit.summary['Peygamberimizin Hayatı'].topics===12&&audit.summary['Peygamberimizin Hayatı'].questions===306,'Peygamberimizin Hayatı sayıları yanlış');

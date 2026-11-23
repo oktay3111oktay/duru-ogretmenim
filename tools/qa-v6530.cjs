@@ -109,6 +109,14 @@ const question = (id, course = 'Matematik', topic = 0) => ({
       { appState: { blindMansBuffRewardsV6530: { rights: 0, completions: { 'normal|Matematik|0': 1 }, daily: { day: '2026-11-16', credit: 0, updatedAt: '' } } }, aux: {} },
       { appState: { blindMansBuffRewardsV6530: { rights: 7, used: 2, updatedAt: '2026-11-16T12:00:00.000Z', completions: { 'normal|Matematik|0': 4 }, daily: { day: '2026-11-16', credit: 64, updatedAt: '2026-11-16T12:00:00.000Z' } } }, aux: {} }
     ).appState.blindMansBuffRewardsV6530;
+    const recoveredStore = {version:6600,balance:20,inventory:{},sushiQueue:[],transactions:[{id:'rw-recovery-v6630',type:'recovery',amount:20,date:'2026-11-23T10:00:00.000Z'}],updatedAt:'2026-11-23T10:00:00.000Z',recoveryV6630:{targetBalance:20,added:20,appliedAt:'2026-11-23T10:00:00.000Z'}};
+    const staleStore = {version:6600,balance:0,inventory:{},sushiQueue:[],transactions:[],updatedAt:'2026-11-23T11:00:00.000Z'};
+    const spentStore = Object.assign({},recoveredStore,{balance:10,updatedAt:'2026-11-23T12:00:00.000Z',transactions:recoveredStore.transactions.concat({id:'spent',type:'purchase',amount:-10,date:'2026-11-23T12:00:00.000Z'})});
+    const rewardStoreSync = {
+      staleCannotErase:syncApi.mergeRewardStores(recoveredStore,staleStore),
+      spentCannotRefill:syncApi.mergeRewardStores(spentStore,staleStore),
+      legacyOpIgnored:syncApi.applyOps({appState:{blindMansBuffRewardsV6530:{rewardStoreV6600:recoveredStore}},aux:{}},[{type:'set',path:['appState','blindMansBuffRewardsV6530','rewardStoreV6600','balance'],value:0}]).appState.blindMansBuffRewardsV6530.rewardStoreV6600
+    };
     const preserved = { points: state.points, done: state.done['Matematik|0'], badge: state.badges.includes('first'), card: !!state.collection['Korunan kart'] };
 
     return {
@@ -117,7 +125,7 @@ const question = (id, course = 'Matematik', topic = 0) => ({
       afterRules: { rights: afterRules.rights, credit: afterRules.daily.credit, answered: afterRules.daily.answered, bonusAnswered: afterRules.daily.bonusAnswered },
       completionNotice, homeSnapshot, rightsBeforeDayReset, dayReset,
       repeatLimit: { blockedStatus, blockedPointsBefore, blockedPointsAfter, limitNotice, otherStatus },
-      parent: { before: parentBefore, hasIncrease, spent, afterSpend, after: parentAfter }, syncMerged,
+      parent: { before: parentBefore, hasIncrease, spent, afterSpend, after: parentAfter }, syncMerged, rewardStoreSync,
       before, preserved, width: document.documentElement.scrollWidth, innerWidth: window.innerWidth
     };
   });
@@ -130,7 +138,7 @@ const question = (id, course = 'Matematik', topic = 0) => ({
   const imageLoaded = true;
 
   console.log(JSON.stringify({ url, result, imageLoaded, alerts, errors }, null, 2));
-  assert(result.title.includes('V6.62.0'), 'Sürüm başlığı güncellenmedi');
+  assert(result.title.includes('V6.63.0'), 'Sürüm başlığı güncellenmedi');
   assert(result.inactiveRights === 0 && result.inactive.answered === 0 && result.inactiveAgain === null, 'Başla etkin değilken Körebe hakkı yazıldı veya aynı tamamlama iki kez işlendi');
   assert(result.attempts.first.threshold === 100 && result.attempts.first.earned === 1, 'İlk tamamlama 100 soru kuralı yanlış');
   assert(result.attempts.second.threshold === 150 && result.attempts.second.earned === 1, 'İkinci tamamlama 150 soru kuralı yanlış');
@@ -147,6 +155,9 @@ const question = (id, course = 'Matematik', topic = 0) => ({
   assert(result.dayReset.rights === result.rightsBeforeDayReset && result.dayReset.progress === 0, 'Gün değişiminde hak koruma veya günlük katkı sıfırlama yanlış');
   assert(result.parent.before.includes('Ödül yönetimi') && !result.parent.hasIncrease, 'Veli Paneli ödül yönetimi yanlış');
   assert(result.syncMerged.rights === 7 && result.syncMerged.used === 2 && result.syncMerged.completions['normal|Matematik|0'] === 4 && result.syncMerged.daily.credit === 64, 'Körebe hakları cihaz eşitlemesinde korunmadı');
+  assert(result.rewardStoreSync.staleCannotErase.balance === 20 && result.rewardStoreSync.staleCannotErase.recoveryV6630, 'Eski cihaz kurtarılan ödül puanını silebiliyor');
+  assert(result.rewardStoreSync.spentCannotRefill.balance === 10, 'Kullanılmış ödül puanı yeniden ekleniyor');
+  assert(result.rewardStoreSync.legacyOpIgnored.balance === 20, 'Eski kuyruk işlemi kurtarılmış ödül puanını eziyor');
   assert(result.preserved.points >= result.before.points && result.preserved.done === result.before.done && result.preserved.badge === result.before.badge && result.preserved.card === result.before.card, 'Mevcut konu, rozet veya koleksiyon kaydı değişti');
   assert(result.width <= result.innerWidth + 1, '390 piksel görünümde yatay taşma var');
   assert(!alerts.length && !errors.length, `Tarayıcı hataları: ${JSON.stringify({ alerts, errors })}`);
